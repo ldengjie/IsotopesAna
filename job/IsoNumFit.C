@@ -174,7 +174,9 @@ void calDaqTime(fitInf& fitinf,string dataVer,string site)
 	Double_t totalTime[5]={0.};
     double tlivetime=0.;
 	string filename;
-    filename=site;
+    filename.assign(dataVer);
+    filename+="/";
+    filename+=site;
     filename+="Time_";
     filename+=dataVer;
     filename+="_multiSlice.root";
@@ -758,7 +760,11 @@ vector<string> checkdata(string dataVer)
         //check merged file 
         for( int i=0 ; i<3 ; i++ )
         {
-            string runlistName=runlistSiteNum[i]+"Time";
+            string runlistName;
+            runlistName.assign(verSuf);
+            runlistName+="/";
+            runlistName+=runlistSiteNum[i];
+            runlistName+="Time";
             runlistName+=verSuf;
             //runlistName+=*it;
             runlistName+="_multiSlice.root";

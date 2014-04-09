@@ -12,9 +12,9 @@ void SingleTree::Begin(TTree * /*tree*/)
     TString IsoModeTmp=option(7,3);
     TString exRateStr=option(10,4);
     double exRate=exRateStr.Atof();
-    genIsoSpec=0;
+    genIsoSpec=1;
     genAmCNeu=0;
-    genTimeFitDis=1;
+    genTimeFitDis=0;
     //IsoMode="C9";//Li8,C99,B12
     IsoMode=IsoModeTmp;//Li8,C99,B12
     for( int i=0 ; i<(BINNUM*2+4) ; i++ )
@@ -82,9 +82,6 @@ void SingleTree::Begin(TTree * /*tree*/)
         offWinHigh=0.560;
     }
 
-
-
-
     TString DataVerTmp=option(3,4);
     dataVer=DataVerTmp;
     option=option(0,3);
@@ -117,7 +114,7 @@ void SingleTree::Begin(TTree * /*tree*/)
     }
 
 
-    TFile *f=new TFile(Form("%sTime_%s_multiSlice.root",option.Data(),dataVer.Data()));
+    TFile *f=new TFile(Form("%s/%sTime_%s_multiSlice.root",dataVer.Data(),option.Data(),dataVer.Data()));
     TH1F* hNoRed=(TH1F*)f->Get("lidj/muonSpecNoRed");
     TH1F* h=(TH1F*)f->Get("lidj/muonSpec");
 

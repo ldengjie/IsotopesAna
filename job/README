@@ -1,2 +1,26 @@
-now is bak19
+how to use this script?
+
+GenIsoSpec.C 
+    #run in ROOT
+        1 root -l
+        2 .L GenIsoSpec.C+
+        3 GenIsoSpec("P14A") or GenIsoSpec("P14A",1)
+GenIsoSpec.main.C 
+    #run on server ,should be synchronized with 'GenIsoSpec.C' by hand. 
+        0 gcmR GenIsoSpec.main
+        1 ./GenIsoSpec.main P14A 2  >*log
+        2 submit to server. so you can make a job*.csh ,e.g. job/GenData_P14A_EH*.csh ,and submit it to server 'qusb -q dybshortq GenData_P14A_EH*.csh',these submits have been listed in 'GenData_submit.csh',so just 'source GenData_submit.csh'
+
+SingleTree.C  SingleTree.h
+    #above two programs all need this file's *.so,I can't make this file into .so separatly,so you should run 'GenIsoSpec.C',then you can run 'GenIsoSpec.main.C'
+
+IsoNumFit.C
+    #multiplt slices
+        1 gcmR IsoNumFit
+        2 ./IsoNumFit P14A 2 C9 4. 0 50
+        3 submit to server. the job scripts are job/multiJob/*.csh ,you can submit them to server by 'source multi_submit.sh',or 'source multi_submit_64.sh'--dyb64q and 'source multi_submit_s.sh'--dybshortq
+    #six slices
+        1 gcmR IsoNumFit
+        2 ./IsoNumFit P14A 1 B12 >*log
+        3 submit to server. 'source submit.csh'
 

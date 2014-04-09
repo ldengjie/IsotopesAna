@@ -57,22 +57,6 @@ int anaTree(int siteNum,string dataVer)
        
     }
     
-    //string  siteAndDataVer=site+dataVer+"B121";
-    //chain.Process("SingleTree",siteAndDataVer.c_str());
-    //siteAndDataVer=site+dataVer+"Li81";
-    //chain.Process("SingleTree",siteAndDataVer.c_str());
-    //siteAndDataVer=site+dataVer+"C991";//C9
-    //chain.Process("SingleTree",siteAndDataVer.c_str());
-    //siteAndDataVer=site+dataVer+"N121";//C9
-    //chain.Process("SingleTree",siteAndDataVer.c_str());
-    //siteAndDataVer=site+dataVer+"B122";
-    //chain.Process("SingleTree",siteAndDataVer.c_str());
-    //siteAndDataVer=site+dataVer+"Li82";
-    //chain.Process("SingleTree",siteAndDataVer.c_str());
-    //siteAndDataVer=site+dataVer+"C992";//C9
-    //chain.Process("SingleTree",siteAndDataVer.c_str());
-    //siteAndDataVer=site+dataVer+"N122";//C9
-    //chain.Process("SingleTree",siteAndDataVer.c_str());
 	return 0;
 }
 int GenIsoSpec(string dataVer,int sitenum=0)
