@@ -21,6 +21,6 @@ IsoNumFit.C
         3 submit to server. the job scripts are job/multiJob/*.csh ,you can submit them to server by 'source multi_submit.sh',or 'source multi_submit_64.sh'--dyb64q and 'source multi_submit_s.sh'--dybshortq
     #six slices
         1 gcmR IsoNumFit
-        2 ./IsoNumFit P14A 1 B12 >*log
+        2 ./IsoNumFit P14A 1 B12 1>*log
         3 submit to server. 'source submit.csh'
 

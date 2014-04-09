@@ -10,77 +10,50 @@ void SingleTree::Begin(TTree * /*tree*/)
 {
     TString option = GetOption();
     TString IsoModeTmp=option(7,3);
-    TString exRateStr=option(10,4);
-    double exRate=exRateStr.Atof();
     genIsoSpec=1;
     genAmCNeu=0;
-    genTimeFitDis=0;
+    genTimeFitDis=1;
     //IsoMode="C9";//Li8,C99,B12
     IsoMode=IsoModeTmp;//Li8,C99,B12
-    for( int i=0 ; i<(BINNUM*2+4) ; i++ )
+    ifRed[1]="NoRed";
+    ifRed[0]="";
+    for( int i=0 ; i<16 ; i++ )
     {
         T2lastMuon[i]=0.;
     }
 
-    for( int i=0 ; i<BINNUM ; i++ )
-    {
-        muonRate[i]=0.;
-        muonEnergy[i]=0.;
-        muonEnergyNoRed[i]=0.;
-        muonRateNoRed[i]=0.;
-    }
-    tlow=0.001;
-    thigh=12.;
     if( IsoMode=="B12" )
     {
         LowEdge=4.0;
         HighEdge=20.0;
-        RATETHR=exRate;//hist for B12
-        LowEdge4e=LowEdge;
-        HighEdge4e=HighEdge;
-        signalWinLow=0.002;          
-        signalWinHigh=0.06;
-        offWinLow=0.502;
-        offWinHigh=0.560;
-        //thigh=0.5;
-    }else if( IsoMode=="Li8" )
-    {
-        LowEdge=4.0;//for N12 time fit,that for Li8 has been done while B12.
-        HighEdge=20.0;
-        RATETHR=exRate;//hist for Li8
-        LowEdge4e=4.0;
-        HighEdge4e=20.0;
-        signalWinLow=0.6;
-        signalWinHigh=4.0;
-        offWinLow=10.6;
-        offWinHigh=14.0;
-        //thigh=10.;
-    } else if( IsoMode=="C99" )
-    {
-        LowEdge=12.0;
-        HighEdge=20.0;
-        RATETHR=exRate;//hist for C9
-        LowEdge4e=LowEdge;
-        HighEdge4e=HighEdge;
-        signalWinLow=0.2;
-        signalWinHigh=0.6;
-        offWinLow=10.2;
-        offWinHigh=10.6;
-        //thigh=2.5;
-    }else if( IsoMode=="N12" )
-    {
-
-        //thigh=0.5;
-        LowEdge=14.0;
-        HighEdge=20.0;
-        RATETHR=exRate;
         LowEdge4e=LowEdge;
         HighEdge4e=HighEdge;
         signalWinLow=0.002;
         signalWinHigh=0.06;
         offWinLow=0.502;
         offWinHigh=0.560;
+    }else if( IsoMode=="Li8" )
+    {
+        LowEdge=14.0;//for N12 time fit,that for Li8 has been done while B12.
+        HighEdge=20.0;
+        LowEdge4e=4.0;
+        HighEdge4e=20.0;
+        signalWinLow=0.6;
+        signalWinHigh=4.0;
+        offWinLow=10.6;
+        offWinHigh=14.0;
+    } else if( IsoMode=="C99" )
+    {
+        LowEdge=12.0;
+        HighEdge=20.0;
+        LowEdge4e=LowEdge;
+        HighEdge4e=HighEdge;
+        signalWinLow=0.2;
+        signalWinHigh=0.6;
+        offWinLow=10.2;
+        offWinHigh=10.6;
     }
+
 
     TString DataVerTmp=option(3,4);
     dataVer=DataVerTmp;
@@ -97,153 +70,57 @@ void SingleTree::Begin(TTree * /*tree*/)
     std::cout<<"option  : "<<option<<endl;
     ADNum=daqHistNum-1;
     site=2;
-    double totaldaq=0.;
     if( option=="EH1")
     {
         site=0;
         ADNum=2;
-        totaldaq=1140.;
-    }else if( option=="EH2" )
+    }
+    if( option=="EH2" )
     {
         site=1;
         ADNum=daqHistNum-3;
-        totaldaq=956.1;
-    }else
-    {
-        totaldaq=2079.3;
     }
-
-
-    TFile *f=new TFile(Form("%s/%sTime_%s_multiSlice.root",dataVer.Data(),option.Data(),dataVer.Data()));
-    TH1F* hNoRed=(TH1F*)f->Get("lidj/muonSpecNoRed");
-    TH1F* h=(TH1F*)f->Get("lidj/muonSpec");
-
-    double rateThr=0.;
-    sliceNumNoRedTmp=0;
-    for( int i=0 ; i<BINNUM ; i++ )
-    {
-        rateThr+=hNoRed->GetBinContent(i+1)/(totaldaq*24*3600);
-        if( rateThr>=RATETHR ||i==(BINNUM-1))
-        {
-            sliceNumNoRed[sliceNumNoRedTmp]=i;
-            muonRateNoRed[sliceNumNoRedTmp]=rateThr;
-            if( i<=979 )
-            {
-                muonEnergyNoRed[sliceNumNoRedTmp]=i+20+1;
-            } else
-            {
-                muonEnergyNoRed[sliceNumNoRedTmp]=(i-979)*5+1000;
-            }
-            sliceNumNoRedTmp++;
-            rateThr=0.;
-        }
-    }
-    std::cout<<"[" <<IsoMode <<"]" <<"slice information w/o muon reduction "<<endl;
-    for( int i=0 ; i<sliceNumNoRedTmp ; i++ )
-    {
-        std::cout<<Form("%4i  : %4i %f %.0f",i,sliceNumNoRed[i],muonRateNoRed[i],muonEnergyNoRed[i])<<endl;
-    }
-    std::cout<<"[" <<IsoMode <<"]" <<"slice information w/o muon reduction "<<endl;
-
-    sliceNumTmp=0;
-    for( int i=0 ; i<BINNUM ; i++ )
-    {
-        rateThr+=h->GetBinContent(i+1)/(totaldaq*24*3600);
-        if( rateThr>=RATETHR ||i==(BINNUM-1))
-        {
-            sliceNum[sliceNumTmp]=i;
-            muonRate[sliceNumTmp]=rateThr;
-            if( i<=979 )
-            {
-                muonEnergy[sliceNumTmp]=i+20+1;
-            } else
-            {
-                muonEnergy[sliceNumTmp]=(i-979)*5+1000;
-            }
-            sliceNumTmp++;
-            rateThr=0.;
-        }
-    }
-    std::cout<<"[" <<IsoMode <<"]" <<"slice information w/ muon reduction "<<endl;
-    for( int i=0 ; i<sliceNumTmp ; i++ )
-    {
-        std::cout<<Form("%4i  : %4i %f %.0f",i,sliceNum[i],muonRate[i],muonEnergy[i])<<endl;
-    }
-    std::cout<<"[" <<IsoMode <<"]" <<"slice information w/ muon reduction "<<endl;
-    option+="Data_";
+    option+="iso_";
     option+=dataVer;
-    option+="_multiSlice.root";
-    TString savePath="/afs/ihep.ac.cn/users/l/lidj/largedata/IsotopesAna/job/";
-    savePath+=option;
-
-    file = new TFile(savePath,"update");
+    option+=".root";
+    option=dataVer+"/"+option;
+    file = new TFile(option,"update");
     if( genTimeFitDis )
     {
-
-        gDirectory->Delete(Form("sliceNumNoRed_%0.2f_%0.1f_%0.1f;*",RATETHR,LowEdge,HighEdge));
-        sliceNumHNoRed=new TH1F(Form("sliceNumNoRed_%0.2f_%0.1f_%0.1f",RATETHR,LowEdge,HighEdge),"muon rate in each slice w/o muon reduction",BINNUM,0,BINNUM);
-        sliceNumHNoRed->SetXTitle("Slice Number");
-        sliceNumHNoRed->SetYTitle("Muon Rate in each Slice");
-        gDirectory->Delete(Form("sliceNum_%0.2f_%0.1f_%0.1f;*",RATETHR,LowEdge,HighEdge));
-        sliceNumH=new TH1F(Form("sliceNum_%0.2f_%0.1f_%0.1f",RATETHR,LowEdge,HighEdge),"muon rate in each slice",BINNUM,0,BINNUM);
-        sliceNumH->SetXTitle("Slice Number");
-        sliceNumH->SetYTitle("Muon Rate in each Slice");
-        for( int i=0 ; i<sliceNumTmp ; i++ )
+        for( int i=0 ; i<5 ; i++ )
         {
-            gDirectory->Delete(Form("time2lastshowermuon_%0.2f_%i_%0.1f_%0.1f;*",RATETHR,i+1,LowEdge,HighEdge));
-            histname=Form("time2lastshowermuon_%0.2f_%i_%0.1f_%0.1f",RATETHR,i+1,LowEdge,HighEdge);
+            histname=Form("time2lastshowermuon%i_%0.1f_%0.1f",i+1,LowEdge,HighEdge);
             time2lastshowermuon[i]=new TH1F(histname,"time2lastshowermuon",99999,0.001,100);
-            time2lastshowermuon[i]->SetXTitle("Time (S)");
-            time2lastshowermuon[i]->SetYTitle("Entries");
+            histname=Form("time2lastshowermuonNoRed%i_%0.1f_%0.1f",i+1,LowEdge,HighEdge);
+            time2lastshowermuonNoRed[i]=new TH1F(histname,"time2lastshowermuon",99999,0.001,100);
         }
-        for( int i=0 ; i<sliceNumNoRedTmp ; i++ )
+
+        histname=Form("time2Allmuon_%0.1f_%0.1f",LowEdge,HighEdge);
+        time2Allmuon[0]=new TH1F(histname,"time2Allmuon",99999,0.001,100);
+        histname=Form("time2AllmuonNoRed_%0.1f_%0.1f",LowEdge,HighEdge);
+        time2Allmuon[1]=new TH1F(histname,"time2Allmuon",99999,0.001,100);
+
+        for( int i=0 ; i<5 ; i++ )
         {
+            time2lastmuon[i]=new TTree(Form("slice%i_%0.1f_%0.1f",i+1,LowEdge,HighEdge),"time2lastmuon");
+            time2lastmuonNoRed[i]=new TTree(Form("sliceNoRed%i_%0.1f_%0.1f",i+1,LowEdge,HighEdge),"time2lastmuon NoRed");
 
-            gDirectory->Delete(Form("time2lastshowermuonNoRed_%0.2f_%i_%0.1f_%0.1f;*",RATETHR,i+1,LowEdge,HighEdge));
-            histname=Form("time2lastshowermuonNoRed_%0.2f_%i_%0.1f_%0.1f",RATETHR,i+1,LowEdge,HighEdge);
-            time2lastshowermuonNoRed[i]=new TH1F(histname,"time2lastshowermuon w/o muon reduction",99999,0.001,100);
-            time2lastshowermuonNoRed[i]->SetXTitle("Time (S)");
-            time2lastshowermuonNoRed[i]->SetYTitle("Entries");
+            time2lastmuon[i]->Branch("xt",&T2lastMuon[4+i],"xt/F");
+            time2lastmuonNoRed[i]->Branch("xt",&T2lastMuon[10+i],"xt/F");
         }
-
-        //histname=Form("time2Allmuon_%0.1f_%0.1f",LowEdge,HighEdge);
-        //time2Allmuon=new TH1F(histname,"time2Allmuon",99999,0.001,100);
-        //histname=Form("time2AllmuonNoRed_%0.1f_%0.1f",LowEdge,HighEdge);
-        //time2AllmuonNoRed=new TH1F(histname,"time2Allmuon",99999,0.001,100);
-        for( int i=0 ; i<sliceNumTmp; i++ )
-        {
-            gDirectory->Delete(Form("slice_%0.2f_%i_%0.1f_%0.1f;*",RATETHR,i+1,LowEdge,HighEdge));
-            time2lastmuon[i]=new TTree(Form("slice_%0.2f_%i_%0.1f_%0.1f",RATETHR,i+1,LowEdge,HighEdge),"time2lastmuon");
-
-            time2lastmuon[i]->Branch("xt",&minTime[i],"xt/D");
-        }
-        for( int i=0 ; i<sliceNumNoRedTmp; i++ )
-        {
-            gDirectory->Delete(Form("sliceNoRed_%0.2f_%i_%0.1f_%0.1f;*",RATETHR,i+1,LowEdge,HighEdge));
-            time2lastmuonNoRed[i]=new TTree(Form("sliceNoRed_%0.2f_%i_%0.1f_%0.1f",RATETHR,i+1,LowEdge,HighEdge),"time2lastmuon NoRed");
-
-            time2lastmuonNoRed[i]->Branch("xt",&minTimeNoRed[i],"xt/D");
-        }
-        /*       
-                 time2lastmuon[5]=new TTree(Form("slice6_%0.1f_%0.1f",LowEdge,HighEdge),"time2lastmuon");
-                 time2lastmuon[5]->Branch("xt",&minT2allmuon,"xt/F");
-                 time2lastmuonNoRed[5]=new TTree(Form("sliceNoRed6_%0.1f_%0.1f",LowEdge,HighEdge),"time2lastmuon NoRed");
-                 time2lastmuonNoRed[5]->Branch("xt",&minT2allmuonNoRed,"xt/F");
-         */
+        time2lastmuon[5]=new TTree(Form("slice6_%0.1f_%0.1f",LowEdge,HighEdge),"time2lastmuon");
+        time2lastmuon[5]->Branch("xt",&minT2allmuon[0],"xt/F");
+        time2lastmuonNoRed[5]=new TTree(Form("sliceNoRed6_%0.1f_%0.1f",LowEdge,HighEdge),"time2lastmuon NoRed");
+        time2lastmuonNoRed[5]->Branch("xt",&minT2allmuon[1],"xt/F");
     }
     if( genAmCNeu )
     {
         for( int i=0 ; i<4 ; i++ )
         {
-            //histname=Form("singleSpecAD%i_%0.1f_%0.1f",i+1,LowEdge,HighEdge);
-            //singleSpec[i]=new TH1F(histname,"spectra of singles",400,0,20);
-            gDirectory->Delete(Form("singleUpperAD%i_%0.1f_%0.1f;*",i+1,LowEdge,HighEdge));
             histname=Form("singleUpperAD%i_%0.1f_%0.1f",i+1,LowEdge,HighEdge);
             singleUpper[i]=new TH1F(histname,"single upper",400,0,20);
-            gDirectory->Delete(Form("singleLowerAD%i_%0.1f_%0.1f;*",i+1,LowEdge,HighEdge));
             histname=Form("singleLowerAD%i_%0.1f_%0.1f",i+1,LowEdge,HighEdge);
             singleLower[i]=new TH1F(histname,"single lower",400,0,20);
-            gDirectory->Delete(Form("AmCSpecAD%i_%0.1f_%0.1f;*",i+1,LowEdge,HighEdge));
             histname=Form("AmCSpecAD%i_%0.1f_%0.1f",i+1,LowEdge,HighEdge);
             AmCSpec[i]=new TH1F(histname,"AmC spectrum",400,0,20);
         }
@@ -252,13 +129,45 @@ void SingleTree::Begin(TTree * /*tree*/)
 
     if( genIsoSpec )
     {
-        histname="signalWindow";
-        signalWin=new TH1F(histname,"signalwidow",80,0,20);
-        histname="offWindow";
-        offWin=new TH1F(histname,"offwidow",80,0,20);
-
+        for( int j=0 ; j<2 ; j++ )
+        {
+            for( int i=0 ; i<6 ; i++ )
+            {
+                std::cout<<"6.1 "<<endl;
+                sprintf(nameChar,"%ssignalEnergy%sSlice%i_%0.1f_%0.1f",IsoMode.c_str(),ifRed[j].c_str(),i+1,LowEdge,HighEdge);
+                signalWin[j][i]=new TH1F(nameChar,nameChar,80,0,20);
+                std::cout<<"6.2 "<<endl;
+                sprintf(nameChar,"%soffEnergy%sSlice%i_%0.1f_%0.1f",IsoMode.c_str(),ifRed[j].c_str(),i+1,LowEdge,HighEdge);
+                offWin[j][i]=new TH1F(nameChar,nameChar,80,0,20);
+                std::cout<<"6.3 "<<endl;
+                sprintf(nameChar,"%ssignalXY%sSlice%i_%0.1f_%0.1f",IsoMode.c_str(),ifRed[j].c_str(),i+1,LowEdge,HighEdge);
+                std::cout<<"6.31 "<<endl;
+                std::cout<<"nameChar  : "<<nameChar<<endl;
+                signalWinXY[j][i]=new TH2F(nameChar,nameChar,600,-3000.,3000.,600,-3000.,3000.);
+                std::cout<<"6.4 "<<endl;
+                sprintf(nameChar,"%soffXY%sSlice%i_%0.1f_%0.1f",IsoMode.c_str(),ifRed[j].c_str(),i+1,LowEdge,HighEdge);
+                offWinXY[j][i]=new TH2F(nameChar,nameChar,600,-3000,3000,600,-3000,3000);
+                std::cout<<"6.5 "<<endl;
+                sprintf(nameChar,"%ssignalRZ%sSlice%i_%0.1f_%0.1f",IsoMode.c_str(),ifRed[j].c_str(),i+1,LowEdge,HighEdge);
+                signalWinRZ[j][i]=new TH2F(nameChar,nameChar,300,0,3000,600,-3000,3000);
+                std::cout<<"6.6 "<<endl;
+                sprintf(nameChar,"%soffRZ%sSlice%i_%0.1f_%0.1f",IsoMode.c_str(),ifRed[j].c_str(),i+1,LowEdge,HighEdge);
+                offWinRZ[j][i]=new TH2F(nameChar,nameChar,300,0,3000,600,-3000,3000);
+                std::cout<<"6.7 "<<endl;
+                sprintf(nameChar,"%ssingleSpecVsTime%sSlice%i_%0.1f_%0.1f",IsoMode.c_str(),ifRed[j].c_str(),i+1,LowEdge,HighEdge);
+                singleSpecVsTime[j][i]=new TH2F(nameChar,nameChar,100000,0,100,400,0,20);
+                std::cout<<"6.8 "<<endl;
+                std::cout<<" "<<endl;
+            }
+            //sprintf(nameChar,"%ssignalWindow2AllMuon%s_%0.1f_%0.1f",IsoMode.c_str(),ifRed[j].c_str(),LowEdge,HighEdge);
+            //signalWin[j][5]=new TH1F(nameChar,nameChar,80,0,20);
+            //sprintf(nameChar,"%soffWindow2AllMuon%s_%0.1f_%0.1f",IsoMode.c_str(),ifRed[j].c_str(),LowEdge,HighEdge);
+            //offWin[j][5]=new TH1F(nameChar,nameChar,80,0,20);
+            //sprintf(nameChar,"%ssingleSpecVsTimeAllMuon%s_%0.1f_%0.1f",IsoMode.c_str(),ifRed[j].c_str(),LowEdge,HighEdge);
+            //singleSpecVsTime[j][5]=new TH2F(nameChar,nameChar,1000000,0,1000,80,0,20);
+        }
     }
-
+    std::cout<<"finished Begin() "<<endl;
 }
 
 void SingleTree::SlaveBegin(TTree * /*tree*/)
@@ -273,31 +182,46 @@ Bool_t SingleTree::Process(Long64_t entry)
     GetEntry(entry);
     if( entry%2000000==0 )
     {
-        std::cout<<"entry : "<<entry<<endl;
+        std::cout<<entry<<endl;
     }
-    //B12 spectrum
+    //isotopes spectrum
     if( genIsoSpec )
     {
-        //singleSpec[det-1]->Fill(energy);
-        //if( energy<3.0 )
-        //{
-        //return kTRUE;
-        //}
         if( energy>LowEdge4e&&energy<HighEdge4e )
         {
-            if( t2lastshowermuon>signalWinLow &&t2lastshowermuon<signalWinHigh )
+            for( int i=0 ; i<2 ; i++ )
             {
-                //if( (x*x+y*y<1550*1550)&&(z*z<1550*1550) )
-                //{
-                signalWin->Fill(energy);
-                //}
-            }
-            if( t2lastshowermuon>offWinLow &&t2lastshowermuon<offWinHigh )
-            {
-                //if( (x*x+y*y<1550*1550)&&(z*z<1550*1550) )
-                //{
-                offWin->Fill(energy);
-                //}
+                minT2allmuon[i]=1000.;
+                for( int j=0 ; j<5 ; j++ )
+                {
+                    singleSpecVsTime[i][j]->Fill(T2lastMuon[j+4+6*i],energy);
+                    minT2allmuon[i]=minT2allmuon[i]<T2lastMuon[j+4+6*i]?minT2allmuon[i]:T2lastMuon[j+4+6*i];
+                    if( T2lastMuon[j+4+6*i]>signalWinLow &&T2lastMuon[j+4+6*i]<signalWinHigh )
+                    {
+                        signalWinXY[i][j]->Fill(x,y);
+                        signalWinRZ[i][j]->Fill(sqrt(x*x+y*y),z);
+                        signalWin[i][j]->Fill(energy);
+                    }
+                    if( T2lastMuon[j+4+6*i]>offWinLow &&T2lastMuon[j+4+6*i]<offWinHigh )
+                    {
+                        offWinXY[i][j]->Fill(x,y);
+                        offWinRZ[i][j]->Fill(sqrt(x*x+y*y),z);
+                        offWin[i][j]->Fill(energy);
+                    }
+                }
+                singleSpecVsTime[i][5]->Fill(minT2allmuon[i],energy);
+                if( minT2allmuon[i]>signalWinLow &&minT2allmuon[i]<signalWinHigh )
+                {
+                    signalWinXY[i][5]->Fill(x,y);
+                    signalWinRZ[i][5]->Fill(sqrt(x*x+y*y),z);
+                    signalWin[i][5]->Fill(energy);
+                }
+                if( minT2allmuon[i]>offWinLow &&minT2allmuon[i]<offWinHigh )
+                {
+                    offWinXY[i][5]->Fill(x,y);
+                    offWinRZ[i][5]->Fill(sqrt(x*x+y*y),z);
+                    offWin[i][5]->Fill(energy);
+                }
             }
         }
     }
@@ -318,68 +242,32 @@ Bool_t SingleTree::Process(Long64_t entry)
         }
 
     }
-
     if( genTimeFitDis )
     {
-        for( int i=0 ; i<BINNUM ; i++ )
+        for( int j=0 ; j<5 ; j++ )
         {
-            minTime[i]=1000000.;
-            minTimeNoRed[i]=1000000.;
+            time2lastshowermuon[j]->Fill(T2lastMuon[j+4]);
+            time2lastshowermuonNoRed[j]->Fill(T2lastMuon[j+10]);
+
         }
-        for( int i=0 ; i<BINNUM ; i++ )
+        minT2allmuon[0]=1000.;
+        minT2allmuon[1]=1000.;
+        for( int j=0 ; j<5 ; j++ )
         {
-            if(T2lastMuon[i+4+BINNUM]>thigh) continue;
-
-            for( int j=0 ; j<sliceNumTmp ; j++ )
-            {
-                if( i<=sliceNum[j] )
-                {
-                    minTime[j]=T2lastMuon[i+4+BINNUM]<minTime[j]?T2lastMuon[i+4+BINNUM]:minTime[j];
-                    break;
-                } 
-
-            }
-
-            for( int j=0 ; j<sliceNumNoRedTmp ; j++ )
-            {
-                if( i<=sliceNumNoRed[j] )
-                {
-                    minTimeNoRed[j]=T2lastMuon[i+4]<minTimeNoRed[j]?T2lastMuon[i+4]:minTimeNoRed[j];
-                    break;
-                } 
-            }
+            minT2allmuon[0]=minT2allmuon[0]<T2lastMuon[j+4]?minT2allmuon[0]:T2lastMuon[j+4];
+            minT2allmuon[1]=minT2allmuon[1]<T2lastMuon[j+10]?minT2allmuon[1]:T2lastMuon[j+10];
         }
-        for( int j=0 ; j<sliceNumTmp ; j++ )
-        {
-            time2lastshowermuon[j]->Fill(minTime[j]);
-            if(minTime[j]<thigh) time2lastmuon[j]->Fill();
-        }
-        for( int j=0 ; j<sliceNumNoRedTmp ; j++ )
-        {
-            time2lastshowermuonNoRed[j]->Fill(minTimeNoRed[j]);
-            if(minTimeNoRed[j]<thigh)  time2lastmuonNoRed[j]->Fill();
-        }
-
-        /*
-           minT2allmuon=1000.;
-           minT2allmuonNoRed=1000.;
-           for( int j=0 ; j<5 ; j++ )
-           {
-           minT2allmuon=minT2allmuon<T2lastMuon[j+4]?minT2allmuon:T2lastMuon[j+4];
-           minT2allmuonNoRed=minT2allmuonNoRed<T2lastMuon[j+10]?minT2allmuonNoRed:T2lastMuon[j+10];
-           }
-         */
         //if( T2lastMuon[2+10]>0 )
         //{
         //std::cout<<"find one "<<T2lastMuon[2+10]<<endl;
         //}
-        //time2Allmuon->Fill(minT2allmuon);
-        //time2AllmuonNoRed->Fill(minT2allmuonNoRed);
-        /*
-           for( int j=0 ; j<6 ; j++ )
-           {
-           }
-         */
+        time2Allmuon[0]->Fill(minT2allmuon[0]);
+        time2Allmuon[1]->Fill(minT2allmuon[1]);
+        for( int j=0 ; j<6 ; j++ )
+        {
+            time2lastmuon[j]->Fill();
+            time2lastmuonNoRed[j]->Fill();
+        }
 
 
     }
@@ -395,64 +283,77 @@ void SingleTree::SlaveTerminate()
 
 void SingleTree::Terminate()
 {
-
+    std::cout<<"Now is in Terminate() "<<endl;
     if( genIsoSpec )
     {
+        for( int j=0 ; j<2 ; j++ )
+        {
+            for( int i=0 ; i<6 ; i++ )
+            {
+                std::cout<<"1 "<<endl;
+                //histname=Form("%sSpecColor",IsoMode.c_str());
+                //c[j][i]=new TCanvas(histname,"IsoSpec",600,400);
+                signalWin[j][i]->SetLineColor(kRed);
+                std::cout<<"1.1 "<<endl;
+                //histname=Form("%sSpecColor",IsoMode.c_str());
+                signalWin[j][i]->GetXaxis()->SetTitle("Energy(MeV)");
+                std::cout<<"1.2 "<<endl;
+                signalWin[j][i]->GetYaxis()->SetTitle("Entries");
+                std::cout<<"1.3 "<<endl;
+                signalWin[j][i]->SetStats(kFALSE); 
+                std::cout<<"1.4 "<<endl;
+                //signalWin[j][i]->Draw();
+                offWin[j][i]->SetLineColor(kGreen);
+                std::cout<<"1.5 "<<endl;
+                offWin[j][i]->SetStats(kFALSE); 
+                std::cout<<"1.6 "<<endl;
+                //offWin[j][i]->Draw("same");
+                histname=Form("%sSpec%sSlice%i_%0.1f_%0.1f",IsoMode.c_str(),ifRed[j].c_str(),i+1,LowEdge4e,HighEdge4e);
+                std::cout<<"2 "<<endl;
+                isoSpec[j][i]=new TH1F(histname,histname,80,0,20);
+                std::cout<<"3 "<<endl;
+                isoSpec[j][i]->Sumw2();
+                //isoSpec[j][i]->Add(signalWin[j][i],offWin[j][i],1,-0.5);
+                std::cout<<"4 "<<endl;
+                isoSpec[j][i]->Add(signalWin[j][i],offWin[j][i],1,-1);
+                std::cout<<"5 "<<endl;
+                isoSpec[j][i]->SetLineColor(kBlue);
+                isoSpec[j][i]->SetStats(kFALSE);
+                isoSpec[j][i]->SetMarkerStyle(20);
+                isoSpec[j][i]->SetMarkerSize(0.7);
+                isoSpec[j][i]->SetMarkerColor(kBlue);
+                isoSpec[j][i]->SetOption("E");
+                //isoSpec[j][i]->Draw("sameE");
+                //TLegend *legend=new TLegend(.4,.65,.79,.89);
+                //histname=Form("signalWin[j][i] : %0.3f ~ %0.3f",signalWin[j][i]Low,signalWin[j][i]High);
+                //legend->AddEntry(signalWin[j][i],histname,"lp");
+                //histname=Form("offWin[j][i] : %0.3f ~ %0.3f",offWin[j][i]Low,offWin[j][i]High);
+                //legend->AddEntry(offWin[j][i],histname,"lp");
+                //histname=Form("%sSpec",IsoMode.c_str());
+                //legend->AddEntry(isoSpec[j][i],histname,"lp");
+                //legend->SetFillColor(0);
+                //legend->Draw("same");
 
-        gDirectory->Delete(Form("%sSpecColor;*",IsoMode.c_str()));
-        histname=Form("%sSpecColor",IsoMode.c_str());
-        TCanvas *c0=new TCanvas(histname,"IsoSpec",600,400);
-        signalWin->SetLineColor(kRed);
-        signalWin->GetXaxis()->SetTitle("Energy(MeV)");
-        signalWin->GetYaxis()->SetTitle("Entries");
-        signalWin->SetStats(kFALSE); 
-        //signalWin->Draw();
-        offWin->SetLineColor(kGreen);
-        offWin->SetStats(kFALSE); 
-        //offWin->Draw("same");
-        gDirectory->Delete(Form("%sSpec_%0.1f_%0.1f;*",IsoMode.c_str(),LowEdge4e,HighEdge4e));
-        histname=Form("%sSpec_%0.1f_%0.1f",IsoMode.c_str(),LowEdge4e,HighEdge4e);
-        TH1F* B12Spec=new TH1F(histname,"IsoSpec",80,0,20);
-        B12Spec->Sumw2();
-        //B12Spec->Add(signalWin,offWin,1,-0.5);
-        B12Spec->Add(signalWin,offWin,1,-1);
-        B12Spec->SetLineColor(kBlue);
-        B12Spec->SetStats(kFALSE);
-        B12Spec->SetMarkerStyle(20);
-        B12Spec->SetMarkerSize(0.7);
-        B12Spec->SetMarkerColor(kBlue);
-        B12Spec->SetOption("E");
-        //B12Spec->Draw("sameE");
-        TLegend *legend=new TLegend(.4,.65,.79,.89);
-        histname=Form("signalWin : %0.3f ~ %0.3f",signalWinLow,signalWinHigh);
-        legend->AddEntry(signalWin,histname,"lp");
-        histname=Form("offWin : %0.3f ~ %0.3f",offWinLow,offWinHigh);
-        legend->AddEntry(offWin,histname,"lp");
-        histname=Form("%sSpec",IsoMode.c_str());
-        legend->AddEntry(B12Spec,histname,"lp");
-        legend->SetFillColor(0);
-        //legend->Draw("same");
+                //THStack* hs = new THStack("hs","");
+                //hs->Add(signalWin[j][i]);
+                //hs->Add(offWin[j][i]);
+                //hs->Draw();
+                //isoSpec[j][i]->Draw("same");
+                //legend->Draw("same");
+                signalWin[j][i]->Write();
+                offWin[j][i]->Write();
+                isoSpec[j][i]->Write();
+                std::cout<<"6 "<<endl;
+                singleSpecVsTime[j][i]->Write();
+                std::cout<<"7 "<<endl;
+                signalWinXY[j][i]->Write();
+                offWinXY[j][i]->Write();
+                signalWinRZ[j][i]->Write();
+                offWinRZ[j][i]->Write();
+                //c[j][i]->Write();
 
-        THStack* hs = new THStack("hs","");
-        hs->Add(signalWin);
-        hs->Add(offWin);
-        hs->Draw();
-        B12Spec->Draw("same");
-        legend->Draw("same");
-
-        //singleSpec[0]->SetOption("E");
-        //singleSpec[0]->SetLineColor(kBlue);
-        //singleSpec[0]->Draw();
-        //singleSpec[1]->SetOption("E");
-        //singleSpec[1]->SetLineColor(kRed);
-        //singleSpec[1]->Draw("same");
-        //for( int i=0 ; i<4 ; i++ )
-        //{
-        //singleSpec[i]->Write();
-        //}
-
-        B12Spec->Write();
-        c0->Write();
+            }
+        }
     }
 
     if( genAmCNeu )
@@ -522,38 +423,19 @@ void SingleTree::Terminate()
     }
     if( genTimeFitDis )
     {
-        sliceNumH->SetBinContent(1,sliceNumTmp);
-        for( int i=2 ; i<=sliceNumTmp+1 ; i++ )
-        {
-            sliceNumH->SetBinContent(i,(muonRate[i-2]+muonEnergy[i-2]*10));    
-        }
-
-        sliceNumH->Write();
-        sliceNumHNoRed->SetBinContent(1,sliceNumNoRedTmp);
-        for( int i=2 ; i<=sliceNumNoRedTmp+1 ; i++ )
-        {
-            sliceNumHNoRed->SetBinContent(i,(muonRateNoRed[i-2]+muonEnergyNoRed[i-2]*10));    
-        }
-
-        sliceNumHNoRed->Write();
-        for( int i=0 ; i<sliceNumTmp ; i++ )
+        for( int i=0 ; i<5 ; i++ )
         {
             time2lastshowermuon[i]->Write();
-            time2lastmuon[i]->Write();
-        }
-        for( int i=0 ; i<sliceNumNoRedTmp ; i++ )
-        {
             time2lastshowermuonNoRed[i]->Write();
-            time2lastmuonNoRed[i]->Write();
+        }
+        time2Allmuon[0]->Write();
+        time2Allmuon[1]->Write();
+        for( int j=0 ; j<6 ; j++ )
+        {
+            time2lastmuon[j]->Write();
+            time2lastmuonNoRed[j]->Write();
         }
 
-        //time2Allmuon->Write();
-        //time2AllmuonNoRed->Write();
-        /*
-           for( int j=0 ; j<6 ; j++ )
-           {
-           }
-         */
     }
 
     //c1->Write();

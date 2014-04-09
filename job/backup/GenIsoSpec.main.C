@@ -1,4 +1,5 @@
 #include  <iostream>
+#include <time.h>//get system time
 #include  <TChain.h>
 #include  <TROOT.h>
 #include  <string>
@@ -26,10 +27,9 @@ int anaTree(int siteNum,string dataVer)
 	
     chainFile="/afs/ihep.ac.cn/users/l/lidj/largedata/IsotopesAna/";
     chainFile+=dataVer;
-    chainFile+="bak20/";
+    chainFile+="/";
     chainFile+=site;
     chainFile+="/*IsotopesAna.root";
-    std::cout<<"chainFile  : "<<chainFile<<endl;
     chain.Add(chainFile.c_str());
     std::cout<<"P12E : "<<chain.GetEntries()<<endl;
     if( dataVer=="P12E" )
@@ -42,24 +42,32 @@ int anaTree(int siteNum,string dataVer)
         chain.Add(chainFile.c_str());
     }
     std::cout<<"P12E+P12A : "<<chain.GetEntries()<<endl;
-    string  siteAndDataVer=site+dataVer+"B12";
-    std::cout<<"site And DataVer  : "<<siteAndDataVer<<endl;
     std::cout<<"lidj total single number  : "<<chain.GetEntries()<<endl;
-
-    chain.Process("SingleTree",siteAndDataVer.c_str());
-    siteAndDataVer=site+dataVer+"Li8";
-    chain.Process("SingleTree",siteAndDataVer.c_str());
-    siteAndDataVer=site+dataVer+"C99";//C9
-    chain.Process("SingleTree",siteAndDataVer.c_str());
-    siteAndDataVer=site+dataVer+"N12";//C9
-    chain.Process("SingleTree",siteAndDataVer.c_str());
+    string nameStr;
+    string isoName[4]={"B12","C99","N12","Li8"};
+    double exRate[10]={0.05,0.1,0.5,1.,1.5,2.,2.5,3.,3.5,4.};
+    for( int i=0 ; i<3 ; i++ )
+    {
+       for( int j=0 ; j<10 ; j++ )
+       {
+           nameStr=Form("%s%s%s%0.2f",site.c_str(),dataVer.c_str(),isoName[i].c_str(),exRate[j]);
+           std::cout<<"nameStr  : "<<nameStr<<endl;
+           chain.Process("SingleTree",nameStr.c_str());
+       }
+       
+    }
 	return 0;
 }
-int GenIsoSpec(string dataVer,int sitenum=0)
-//int main(int argc, char *argv[])
+//int GenIsoSpec(string dataVer,int sitenum=0)
+int main(int argc, char *argv[])
 {
-    //string dataVer=argv[1];
-    //int sitenum=atoi(argv[2]);
+    time_t t0 = time(0); 
+    char tmp0[64]; 
+    strftime( tmp0, sizeof(tmp0), "%Y/%m/%d %X %A %j %z",localtime(&t0) ); 
+    std::cout<<"begin  at "<<tmp0<<endl;
+    //string dataVer="P13A";
+    string dataVer=argv[1];
+    int sitenum=atoi(argv[2]);
     if( !(dataVer=="P13A"||dataVer=="P12E"||dataVer=="P14A") )
     {
         std::cout<<"  The dataVerion is wrong ,please check! "<<endl;
@@ -82,5 +90,9 @@ int GenIsoSpec(string dataVer,int sitenum=0)
     {
         anaTree(3,dataVer);
     }
+    time_t t = time(0); 
+    char tmp[64]; 
+    strftime( tmp, sizeof(tmp), "%Y/%m/%d %X %A %j %z",localtime(&t) ); 
+    std::cout<<"all is done at "<<tmp<<endl;
     return 0;
 }

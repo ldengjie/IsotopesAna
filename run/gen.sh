@@ -40,7 +40,7 @@ NuWaConfigScript="/afs/ihep.ac.cn/users/l/lidj/.laf_opt"
 #logPath="/afs/ihep.ac.cn/users/l/lidj/largedata/IsotopesAna/P13A/log"
 #targetdir=$PWD/P13A
 
-inputFILELISTPATH="/dybfs/rec/P14A/minirec_GoodRun_v2"
+inputFILELISTPATH="/dybfs/rec/P14A/GoodRun_v2"
 #RpcGoodFileList="/workfs/dyw/lidj/runlist/P12B/RpcGood"
 outPUTFILEPATH="/afs/ihep.ac.cn/users/l/lidj/largedata/IsotopesAna/P14A"
 logPath="/afs/ihep.ac.cn/users/l/lidj/largedata/IsotopesAna/P14A/log"

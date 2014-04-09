@@ -25,24 +25,18 @@ class IsotopesAna : public AlgBase
 	virtual bool execute();
 	virtual bool finalize();
   private:
-    static const int MAXNUM=1780;
-    typedef struct tAndes
-    {
-        TTimeStamp time;
-        double energy;
-
-    }tAnde;
 	bool FillLi(vector<PhyEvent*> EvtGroup);
 	bool FillSingle(PhyEvent* Evt);
 	bool CalTime2Muon(PhyEvent* event);
 	bool printEvt(PhyEvent* CurEvent);
     void dump(int i_det,bool IsFinal,PhyEvent* CurEvent);
 
-	float time2Muon[MAXNUM*2+4];
+    int ADMuonNum[7];
+	float time2Muon[16];
 	TString histName;
 	//int Ebins;
 	int det;
-	float t2muon[MAXNUM*2+4];
+	float t2muon[16];
 	
 	bool saveSingle;
 	TTree* SingleTree;
@@ -50,7 +44,7 @@ class IsotopesAna : public AlgBase
 	float y;
 	float z;
 	float energy;
-	float T2lastMuon[MAXNUM*2+4];
+	float T2lastMuon[16];
 
 	TTree* LiTree;
 	//[0]for IBD Prompt singal,[1]for IBD delayed singal
@@ -60,9 +54,9 @@ class IsotopesAna : public AlgBase
 	float  y_l[2];
 	float  z_l[2];
 	float timeInterval; //us
-	float promptT2Muon[MAXNUM*2+4];
+	float promptT2Muon[16];
     float t2lastshowermuon;
-	float delayedT2Muon[MAXNUM*2+4];
+	float delayedT2Muon[16];
 
     TTimeStamp lastOwpMuonTrigtime;
     TTimeStamp lastIwpMuonTrigtime;
@@ -70,17 +64,17 @@ class IsotopesAna : public AlgBase
     TTimeStamp lastAdMuonTrigtime[4];
     TTimeStamp lastShowerMuonTrigtime[4];
 
-    double energySlice[MAXNUM+1];
-	TTimeStamp lastshowermuonTrigtimeNoRed[MAXNUM][4];
+	TTimeStamp lastshowermuonTrigtimeNoRed[6][4];
+    TH1F* time2lastshowermuonNoRed[6];
+	TH1F* showermuonNumNoRed[6];
 
-	TTimeStamp lastshowermuonTrigtime[MAXNUM][4];
-	TTimeStamp lastshowermuonTrigtimeTmp[MAXNUM][4];
-    //vector<TTimeStamp> lastshowermuonTrigtimeVec[MAXNUM][4];
-    //vector<double> muonSpecVec[MAXNUM][4];
-    vector<tAnde> tAndeVec[MAXNUM][4];
+	TTimeStamp lastshowermuonTrigtime[6][4];
+	TTimeStamp lastshowermuonTrigtimeTmp[6][4];
+	vector<TTimeStamp> lastshowermuonTrigtimeVec[6][4];
+    TH1F* time2lastshowermuon[6];
+	TH1F* showermuonNum[6];
+    TH1F* time2lastshowermuon4Li[6];
     TH1F* time2Allmuon;
-    TH1F* muonSpec;
-    TH1F* muonSpecNoRed;
     TH1F* t2nextEvt[4];
     TH1F* time2Allmuon4Li;
 

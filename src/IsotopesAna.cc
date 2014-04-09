@@ -29,29 +29,17 @@ IsotopesAna::IsotopesAna(const std::string& name)
     lastIwpMuonTrigtime.SetSec(0);
     lastIwpMuonTrigtime.SetNanoSec(0);
 
-    for( int i=0 ; i<=980 ; i++ )
-    {
-        energySlice[i]=20+i;
-    }
-    for( int i=981 ; i<MAXNUM+1 ; i++ )
-    {
-        energySlice[i]=1000+(i-980)*5;
-    }
-    
-    
 	for( int i=0 ; i<GlobalVar::NumADs ; i++ )
 	{
 		AdEvtBuf[i].clear();
         time2MuonBuf[i].clear();
-        for( int j=0 ; j<MAXNUM ; j++ )
+        for( int j=0 ; j<6 ; j++ )
         {
             lastshowermuonTrigtime[j][i].SetSec(0);
             lastshowermuonTrigtime[j][i].SetNanoSec(0);
             lastshowermuonTrigtimeTmp[j][i].SetSec(0);
             lastshowermuonTrigtimeTmp[j][i].SetNanoSec(0);
-            tAndeVec[j][i].clear();
-            //lastshowermuonTrigtimeVec[j][i].clear();
-            //muonSpecVec[j][i].clear();
+            lastshowermuonTrigtimeVec[j][i].clear();
             lastshowermuonTrigtimeNoRed[j][i].SetSec(0);
             lastshowermuonTrigtimeNoRed[j][i].SetNanoSec(0);
         }
@@ -71,13 +59,38 @@ bool IsotopesAna::initialize()
 	liveTimeSvc = dynamic_cast<LiveTimeSvc*>(service("LiveTimeSvc"));
 	muonVeto_l = MuonVeto::instance();
 
+    for( int i=0 ; i<7 ; i++ )
+    {
+        ADMuonNum[i]=0;
+    }
     
+    for( int i=0 ; i<6 ; i++ )
+    {
+        histName="time2lastshowermuon";
+        histName+=i+1;
+        time2lastshowermuon[i] = new TH1F(histName,"time2lastshowermuon",100000,0.,100.); 
+	    ntupleSvc()->attach("FILE1/lidj",time2lastshowermuon[i]);
+        histName="showermuonNum";
+        histName+=i+1;
+	    showermuonNum[i] = new TH1F(histName,"number of AD showermuon",liveTimeSvc->nBins(),liveTimeSvc->startTime().AsDouble(),liveTimeSvc->endTime().AsDouble());
+	    ntupleSvc()->attach("FILE1/lidj",showermuonNum[i]);
+        histName="time2lastshowermuon";
+        histName+=i+1;
+        histName+="4Li";
+        time2lastshowermuon4Li[i] = new TH1F(histName,"time2lastshowermuon Li",100000,0.,100.); 
+	    ntupleSvc()->attach("FILE1/lidj",time2lastshowermuon4Li[i]);
+        histName="time2lastshowermuonNoRed";
+        histName+=i+1;
+        time2lastshowermuonNoRed[i] = new TH1F(histName,"time2lastshowermuonNoRed",100000,0.,100.); 
+	    ntupleSvc()->attach("FILE1/lidj",time2lastshowermuonNoRed[i]);
+        histName="showermuonNumNoRed";
+        histName+=i+1;
+	    showermuonNumNoRed[i] = new TH1F(histName,"number of AD showermuon",liveTimeSvc->nBins(),liveTimeSvc->startTime().AsDouble(),liveTimeSvc->endTime().AsDouble());
+	    ntupleSvc()->attach("FILE1/lidj",showermuonNumNoRed[i]);
+
+    }
     time2Allmuon=new TH1F("time2Allmuon","time2Allmuon",100000,0.,100.);
 	ntupleSvc()->attach("FILE1/lidj",time2Allmuon);
-    muonSpec=new TH1F("muonSpec","muonSpec",MAXNUM,energySlice);
-    ntupleSvc()->attach("FILE1/lidj",muonSpec);
-    muonSpecNoRed=new TH1F("muonSpecNoRed","muonSpecNoRed",MAXNUM,energySlice);
-	ntupleSvc()->attach("FILE1/lidj",muonSpecNoRed);
     for( int i=0 ; i<4 ; i++ )
     {
         histName="t2nextEvtAD";
@@ -98,7 +111,7 @@ bool IsotopesAna::initialize()
 		SingleTree->Branch("det",&det,"det/I");
 		//SingleTree->Branch("t2muon",t2muon,"t2muon[7]/F");
 		SingleTree->Branch("t2lastshowermuon",&t2lastshowermuon,"t2lastshowermuon/F");
-        SingleTree->Branch("T2lastMuon",T2lastMuon,"T2lastMuon[3564]/F");
+        SingleTree->Branch("T2lastMuon",T2lastMuon,"T2lastMuon[16]/F");
 	}
 
 	LiTree = ntupleSvc()->bookTree("FILE2/Tree/LiTree","LiTree");
@@ -128,6 +141,14 @@ bool IsotopesAna::execute()
 	{
 		return true;
 	}
+    if( CurEvent->m_quadrant>0.5&&CurEvent->m_maxQ>0.03 )
+    {
+            return true;
+    }
+    if( CurEvent->isAdMuon() )
+    {
+        ADMuonNum[0]++;
+    }
 	if( CurEvent->isMuon())
 	{
         //need to delete this function "updateVetoWindow",in "NtupleAna/Algorithms/src/MuonTagAlg.cc" ,it has been executed once.If you don't use the project"MuonTagAlg",you should not delete this line.
@@ -162,22 +183,87 @@ bool IsotopesAna::execute()
         AdMuonEnergy=CurEvent->energy();
 
         /*
+		if( AdMuonEnergy>=20. && AdMuonEnergy<500. )
+		{
+            lastshowermuonTrigtimeVec[0][CurEvent->m_det-1].push_back(CurEvent->m_trigTime);
+            ADMuonNum[1]++;
+
+		} else if( AdMuonEnergy>=500. && AdMuonEnergy<1500. )
+		{
+            lastshowermuonTrigtimeVec[1][CurEvent->m_det-1].push_back(CurEvent->m_trigTime);
+            ADMuonNum[2]++;
+		} else if( AdMuonEnergy>=1500. && AdMuonEnergy<2500. )
+		{
+            lastshowermuonTrigtimeVec[2][CurEvent->m_det-1].push_back(CurEvent->m_trigTime);
+            ADMuonNum[3]++;
+		} else if( AdMuonEnergy>=2500. && AdMuonEnergy<3500. )
+		{
+            lastshowermuonTrigtimeVec[3][CurEvent->m_det-1].push_back(CurEvent->m_trigTime);
+            ADMuonNum[4]++;
+		} else if( AdMuonEnergy>=3500. && AdMuonEnergy<4500. )
+		{
+            lastshowermuonTrigtimeVec[4][CurEvent->m_det-1].push_back(CurEvent->m_trigTime);
+            ADMuonNum[5]++;
+			
+		}else if( AdMuonEnergy>=4500. )
+		{
+            lastshowermuonTrigtimeVec[5][CurEvent->m_det-1].push_back(CurEvent->m_trigTime);
+            ADMuonNum[6]++;
+			
+		}else
+		{
+			//continue;
+		}
         */
-        muonSpecNoRed->Fill(AdMuonEnergy);
-        for( int i=0 ; i<MAXNUM ; i++ )
-        {
-            if( AdMuonEnergy>energySlice[i]&& AdMuonEnergy<energySlice[i+1] )
-            {
-                tAnde tande={CurEvent->m_trigTime,CurEvent->energy()};
-                //lastshowermuonTrigtimeVec[i][CurEvent->m_det-1].push_back(CurEvent->m_trigTime);
-                //muonSpecVec[i][CurEvent->m_det-1].push_back(CurEvent->energy());
-                tAndeVec[i][CurEvent->m_det-1].push_back(tande);
-                lastshowermuonTrigtimeNoRed[i][CurEvent->m_det-1].SetSec(CurEvent->m_trigTime.GetSec());
-                lastshowermuonTrigtimeNoRed[i][CurEvent->m_det-1].SetNanoSec(CurEvent->m_trigTime.GetNanoSec());
-                break;
-            }
-        }
-        
+		if( AdMuonEnergy>=20. && AdMuonEnergy<60. )
+		{
+            lastshowermuonTrigtimeVec[0][CurEvent->m_det-1].push_back(CurEvent->m_trigTime);
+            ADMuonNum[1]++;
+            lastshowermuonTrigtimeNoRed[0][CurEvent->m_det-1].SetSec(CurEvent->m_trigTime.GetSec());
+            lastshowermuonTrigtimeNoRed[0][CurEvent->m_det-1].SetNanoSec(CurEvent->m_trigTime.GetNanoSec());
+            showermuonNumNoRed[0]->Fill(CurEvent->m_trigTime);
+
+		} else if( AdMuonEnergy>=60. && AdMuonEnergy<500. )
+		{
+            lastshowermuonTrigtimeVec[1][CurEvent->m_det-1].push_back(CurEvent->m_trigTime);
+            ADMuonNum[2]++;
+            lastshowermuonTrigtimeNoRed[1][CurEvent->m_det-1].SetSec(CurEvent->m_trigTime.GetSec());
+            lastshowermuonTrigtimeNoRed[1][CurEvent->m_det-1].SetNanoSec(CurEvent->m_trigTime.GetNanoSec());
+            showermuonNumNoRed[1]->Fill(CurEvent->m_trigTime);
+		} else if( AdMuonEnergy>=500. && AdMuonEnergy<1500. )
+		{
+            lastshowermuonTrigtimeVec[2][CurEvent->m_det-1].push_back(CurEvent->m_trigTime);
+            ADMuonNum[3]++;
+            lastshowermuonTrigtimeNoRed[2][CurEvent->m_det-1].SetSec(CurEvent->m_trigTime.GetSec());
+            lastshowermuonTrigtimeNoRed[2][CurEvent->m_det-1].SetNanoSec(CurEvent->m_trigTime.GetNanoSec());
+            showermuonNumNoRed[2]->Fill(CurEvent->m_trigTime);
+		} else if( AdMuonEnergy>=1500. && AdMuonEnergy<2500. )
+		{
+            lastshowermuonTrigtimeVec[3][CurEvent->m_det-1].push_back(CurEvent->m_trigTime);
+            ADMuonNum[4]++;
+            lastshowermuonTrigtimeNoRed[3][CurEvent->m_det-1].SetSec(CurEvent->m_trigTime.GetSec());
+            lastshowermuonTrigtimeNoRed[3][CurEvent->m_det-1].SetNanoSec(CurEvent->m_trigTime.GetNanoSec());
+            showermuonNumNoRed[3]->Fill(CurEvent->m_trigTime);
+		} else if( AdMuonEnergy>=2500. )
+		{
+            lastshowermuonTrigtimeVec[4][CurEvent->m_det-1].push_back(CurEvent->m_trigTime);
+            ADMuonNum[5]++;
+            lastshowermuonTrigtimeNoRed[4][CurEvent->m_det-1].SetSec(CurEvent->m_trigTime.GetSec());
+            lastshowermuonTrigtimeNoRed[4][CurEvent->m_det-1].SetNanoSec(CurEvent->m_trigTime.GetNanoSec());
+            showermuonNumNoRed[4]->Fill(CurEvent->m_trigTime);
+			
+		}else if( AdMuonEnergy>=2500. )
+		{
+            lastshowermuonTrigtimeVec[5][CurEvent->m_det-1].push_back(CurEvent->m_trigTime);
+            ADMuonNum[6]++;
+            lastshowermuonTrigtimeNoRed[5][CurEvent->m_det-1].SetSec(CurEvent->m_trigTime.GetSec());
+            lastshowermuonTrigtimeNoRed[5][CurEvent->m_det-1].SetNanoSec(CurEvent->m_trigTime.GetNanoSec());
+            showermuonNumNoRed[5]->Fill(CurEvent->m_trigTime);
+			
+		}else
+		{
+			//continue;
+		}
 	}
 
 	if( !CurEvent->isAD())
@@ -203,31 +289,31 @@ bool IsotopesAna::execute()
     {
 
         //for( int i=0 ; i<6 ; i++ )
-        for( int i=0 ; i<MAXNUM ; i++ )
+        for( int i=0 ; i<6 ; i++ )
         {
-            if( !tAndeVec[i][CurEvent->m_det-1].empty() )
+            if( !lastshowermuonTrigtimeVec[i][CurEvent->m_det-1].empty() )
             {
-                vector<tAnde>::iterator it=tAndeVec[i][CurEvent->m_det-1].end();
+                vector<TTimeStamp>::iterator it=lastshowermuonTrigtimeVec[i][CurEvent->m_det-1].end();
                 it--;
                 bool lastAdmuon=true;
-                for(; it>=tAndeVec[i][CurEvent->m_det-1].begin();it--) 
+                for(; it>=lastshowermuonTrigtimeVec[i][CurEvent->m_det-1].begin();it--) 
                 {
-                    if( (CurEvent->m_trigTime-(*it).time)>1.e-5 &&(CurEvent->m_trigTime-(*it).time)<2.e-4)
+                    if( (CurEvent->m_trigTime-*it)>1.e-5 &&(CurEvent->m_trigTime-*it)<2.e-4)
                     {
                         if( lastAdmuon )
                         {
-                            lastshowermuonTrigtime[i][CurEvent->m_det-1].SetSec((*it).time.GetSec());
-                            lastshowermuonTrigtime[i][CurEvent->m_det-1].SetNanoSec((*it).time.GetNanoSec());
+                            lastshowermuonTrigtime[i][CurEvent->m_det-1].SetSec((*it).GetSec());
+                            lastshowermuonTrigtime[i][CurEvent->m_det-1].SetNanoSec((*it).GetNanoSec());
                             lastAdmuon=false;
                         }
-                        lastshowermuonTrigtimeTmp[i][CurEvent->m_det-1].SetSec((*it).time.GetSec());
-                        lastshowermuonTrigtimeTmp[i][CurEvent->m_det-1].SetNanoSec((*it).time.GetNanoSec());
-                        muonSpec->Fill((*it).energy);
-                        it=tAndeVec[i][CurEvent->m_det-1].erase(it);
-                    } else if( (CurEvent->m_trigTime-(*it).time)>=2.e-4 )
+                        lastshowermuonTrigtimeTmp[i][CurEvent->m_det-1].SetSec((*it).GetSec());
+                        lastshowermuonTrigtimeTmp[i][CurEvent->m_det-1].SetNanoSec((*it).GetNanoSec());
+			            showermuonNum[i]->Fill(lastshowermuonTrigtimeTmp[i][CurEvent->m_det-1]);
+                        it=lastshowermuonTrigtimeVec[i][CurEvent->m_det-1].erase(it);
+                    } else if( (CurEvent->m_trigTime-*it)>=2.e-4 )
                     {
                         it++;
-                        tAndeVec[i][CurEvent->m_det-1].erase(tAndeVec[i][CurEvent->m_det-1].begin(),it); 
+                        lastshowermuonTrigtimeVec[i][CurEvent->m_det-1].erase(lastshowermuonTrigtimeVec[i][CurEvent->m_det-1].begin(),it); 
                         break;
                     } else
                     {
@@ -271,12 +357,78 @@ bool IsotopesAna::finalize()
     }
     
 	std::cout<<"IsotopesAna finalize..."<<endl;
+    for( int i=0 ; i<7 ; i++ )
+    {
+        std::cout<<"ADmuon number "<<i <<" : "<<ADMuonNum[i]<<endl;
+    }
     
 	return true;
 }
 
 bool IsotopesAna::FillLi(vector<PhyEvent*> EvtGroup)
 {
+    if( time2MuonBuf[EvtGroup[0]->m_det-1].size()!=2 )
+    {
+        std::cout<<"time2MuonBuf size is wrong in FillLi(),size is "<<time2MuonBuf[EvtGroup[0]->m_det-1].size()<<endl;
+    }
+
+	if(!( (EvtGroup[0]->energy()<promptEHigh4Li)&&(EvtGroup[1]->energy()<delayedEHigh4Li)&&(EvtGroup[1]->energy()>delayedELow4Li)&&((EvtGroup[1]->m_trigTime-EvtGroup[0]->m_trigTime)<2.e-4)&&((EvtGroup[1]->m_trigTime-EvtGroup[0]->m_trigTime)>=LiIntervalMin) ))
+	{
+		return true;
+	}
+	for( int i=0 ; i<16 ; i++ )
+	{
+		delayedT2Muon[i]=time2MuonBuf[EvtGroup[1]->m_det-1][1][i];	
+	}
+	if( !((delayedT2Muon[0]>=DelayedTrigTime2AdMuon4Li)&&(delayedT2Muon[2]>=DelayedTrigTime2IWpMuon4Li)&&(delayedT2Muon[1]>=1.e-3)&&(delayedT2Muon[3]>=DelayedTrigTime2OWpMuon4Li)) )
+	{
+	    return true;
+	}
+    /*
+    float Dis=(EvtGroup[1]->m_x-EvtGroup[0]->m_x)*(EvtGroup[1]->m_x-EvtGroup[0]->m_x)+(EvtGroup[1]->m_y-EvtGroup[0]->m_y)*(EvtGroup[1]->m_y-EvtGroup[0]->m_y)+(EvtGroup[1]->m_z-EvtGroup[0]->m_z)*(EvtGroup[1]->m_z-EvtGroup[0]->m_z);
+    if(!(Dis<1.e6))
+    {
+        return true;
+    }
+    */
+    /*
+    if( time2MuonBuf[EvtGroup[1]->m_det-1][0][6]>2. )
+    {
+        return true;
+    }
+
+    */
+	//fill IBD tree AND histograms
+	det_l = EvtGroup[1]->m_det;
+	timeInterval=(EvtGroup[1]->m_trigTime-EvtGroup[0]->m_trigTime)*1.e6;
+	for( int i=0 ; i<(int)EvtGroup.size() ; i++ )
+	{
+		energy_l[i]=EvtGroup[i]->energy();
+		x_l[i]=EvtGroup[i]->m_x;
+		y_l[i]=EvtGroup[i]->m_y;
+		z_l[i]=EvtGroup[i]->m_z;
+	}
+    /*
+	for( int i=0 ; i<10 ; i++ )
+	{
+		promptT2Muon[i]=time2MuonBuf[EvtGroup[0]->m_det-1][0][i];	
+	}
+	*/
+    t2lastshowermuon=time2MuonBuf[EvtGroup[0]->m_det-1][0][1];
+	LiTree->Fill();
+
+
+
+    if( !((EvtGroup[0]->energy()>=promptELow4Li)&&(delayedT2Muon[1]>=DelayedTrigTime2AdShowerMuon4Li)&&(EvtGroup[1]->m_trigTime-EvtGroup[0]->m_trigTime)<LiIntervalMax)) 
+    {
+        return true;
+    }
+    std::cout<<"det  : "<<EvtGroup[0]->m_det<<" trigtime  : "<<EvtGroup[0]->m_trigTime<<endl;
+    for( int i=0 ; i<6 ; i++ )
+    {
+        time2lastshowermuon4Li[i]->Fill(time2MuonBuf[EvtGroup[0]->m_det-1][0][i+4]);
+    }
+    time2Allmuon4Li->Fill(time2MuonBuf[EvtGroup[0]->m_det-1][0][1]);
 
 	return true;
 }
@@ -300,6 +452,11 @@ bool IsotopesAna::FillSingle(PhyEvent* Evt)
 	{
 	}
     */
+    for( int i=0 ; i<6 ; i++ )
+    {
+        time2lastshowermuon[i]->Fill(time2MuonBuf[Evt->m_det-1][0][i+4]);
+        time2lastshowermuonNoRed[i]->Fill(time2MuonBuf[Evt->m_det-1][0][i+10]);
+    }
     time2Allmuon->Fill(time2MuonBuf[Evt->m_det-1][0][1]);
 
     DataBuffer<PhyEvent>::Iterator it=EvtBuffer->find(Evt);
@@ -328,10 +485,24 @@ bool IsotopesAna::FillSingle(PhyEvent* Evt)
 		y=Evt->m_y;
 		z=Evt->m_z;
 		//CalTime2Muon(Evt);
-		for(int i=0;i<MAXNUM*2+4;i++) T2lastMuon[i]=time2MuonBuf[Evt->m_det-1][0][i];
+		for(int i=0;i<16;i++) T2lastMuon[i]=time2MuonBuf[Evt->m_det-1][0][i];
         t2lastshowermuon=time2MuonBuf[Evt->m_det-1][0][1];
 		SingleTree->Fill();
 	}
+    //std::cout<<"Single energy: "<<endl;
+    //std::cout<<"    "<<Evt->energy()<<endl;
+    //std::cout<<"time to last muon  : "<<endl;
+    //std::cout<<"   "<<time2MuonBuf[Evt->m_det-1][0][10]<<endl;
+    //std::cout<<"   "<<time2MuonBuf[Evt->m_det-1][0][11]<<endl;
+    //std::cout<<"   "<<time2MuonBuf[Evt->m_det-1][0][12]<<endl;
+    //std::cout<<"   "<<time2MuonBuf[Evt->m_det-1][0][13]<<endl;
+    //std::cout<<"   "<<time2MuonBuf[Evt->m_det-1][0][14]<<endl;
+    //std::cout<<"time to AD ADShower IWS OWS : "<<endl;
+    //std::cout<<"   "<<time2MuonBuf[Evt->m_det-1][0][0] <<endl;
+    //std::cout<<"   "<<time2MuonBuf[Evt->m_det-1][0][1] <<endl;
+    //std::cout<<"   "<<time2MuonBuf[Evt->m_det-1][0][2] <<endl;
+    //std::cout<<"   "<<time2MuonBuf[Evt->m_det-1][0][3] <<endl;
+    
 	return true;
 }
 
@@ -339,7 +510,7 @@ bool IsotopesAna::CalTime2Muon(PhyEvent* event)
 {
     //can not be used in dump().must only be used for current event,because these last*muonTrigtimes are latest muons!!!
     time2MuonVec.clear();
-	for(int i=0;i<MAXNUM*2+4;i++) time2Muon[i]=10.e6;
+	for(int i=0;i<16;i++) time2Muon[i]=10.e6;
 	//pre ADMuon
     if( lastAdMuonTrigtime[event->m_det-1].GetSec()!=0. )
     {
@@ -361,7 +532,7 @@ bool IsotopesAna::CalTime2Muon(PhyEvent* event)
         time2Muon[3]=event->m_trigTime - lastOwpMuonTrigtime;
     }
     //for B12/N12
-    for( int i=0 ; i<MAXNUM ; i++ )
+    for( int i=0 ; i<6 ; i++ )
     {
         if( lastshowermuonTrigtime[i][event->m_det-1].GetSec()!=0. )
         {
@@ -369,12 +540,12 @@ bool IsotopesAna::CalTime2Muon(PhyEvent* event)
         }
         if( lastshowermuonTrigtimeNoRed[i][event->m_det-1].GetSec()!=0. )
         {
-            time2Muon[i+4+MAXNUM]=event->m_trigTime - lastshowermuonTrigtimeNoRed[i][event->m_det-1];
+            time2Muon[i+10]=event->m_trigTime - lastshowermuonTrigtimeNoRed[i][event->m_det-1];
         }
     }
     
 
-    for( int i=0 ; i<MAXNUM*2+4 ; i++ )
+    for( int i=0 ; i<16 ; i++ )
     {
         time2MuonVec.push_back(time2Muon[i]);
     }
