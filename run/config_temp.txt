@@ -1,0 +1,94 @@
+//loaded dlls
+LafMain.Dlls = {"Algorithms"};
+
+AlgMgr.Contents += {"LiveTimeAlg","MuonTagAlg"};
+
+SvcMgr.Contents += {"LiveTimeSvc"};
+LiveTimeSvc.TimeGap = 1.; // 1 second
+LiveTimeSvc.StartTime = "2011-09-20T00:00:00";
+LiveTimeSvc.EndTime = "2013-12-25T00:00:00";
+LiveTimeSvc.NBins = 4962;
+LiveTimeSvc.BinWidth = 0.;  // If bin width > 0, nbins will be recaculated
+
+LafMain.Dlls += {"IsotopesAna"};
+AlgMgr.Contents += {"IsotopesAna"};
+
+//====================================
+IsotopesAna.EnergyLow = 4.0;  // MeV
+IsotopesAna.EnergyHigh = 20.; // MeV
+IsotopesAna.PromptEnergyLow4Li = 3.5;  // MeV
+IsotopesAna.PromptEnergyHigh4Li = 12.; // MeV
+IsotopesAna.DelayedEnergyLow4Li = 6.;  // MeV
+IsotopesAna.DelayedEnergyHigh4Li = 12.;  // MeV
+IsotopesAna.LiIntervalMin = 1.e-6;  // 1 us
+IsotopesAna.LiIntervalMax = 1.e-4; // 100 us
+IsotopesAna.Time2LastBufEvent = 2.e-4;
+IsotopesAna.AdMuonELow = 20.;//no use
+IsotopesAna.AdMuonEHigh =2500.;
+
+//====================================
+//input service and files
+LafMain.InputSvc = "INPUTSVC";
+INPUTSVC.PreferredRecTree = "Event/Rec/AdScaled";
+INPUTSVC.PreferredEnergy = "enrec";
+INPUTSVC.InputFiles ={"INPUTFILELISTPATH/SITE/FILENAME"};
+
+LafMain.EvtMax   = -1;
+LafMain.LogLevel = 3;
+
+//root file (TNtuple, TTree, THist) output
+//TOutputSvc.Output += {"FILE1":"OUTPUTFILEPATH/SITE/FILE1NAME" };
+TOutputSvc.Output += {"FILE2":"OUTPUTFILEPATH/SITE/FILE2NAME" };
+//====================================
+//the cycler
+LafMain.Dlls += {"SelCycler"};
+SvcMgr.Contents += {"SelCycler"};
+
+SelCycler.Tags = { "ForceTrigTag", "CrossTrigTag", "RpcNoiseTag", "FlasherTag", "MuonTag"};
+//SelCycler.Tags += { "RpcValidTag" };
+SelCycler.TimeWindow = { -0.1, 0.1};
+SelCycler.KeepFirstEvtEachFile = TRUE;
+
+//RpcValidTag.GoodFileList ={"RPCGOODFILELIST/SITE/RPCfILENAME"};
+FlasherTag.RatioMaxQCut = 0.45;
+FlasherTag.QuadrantCut = 1.;
+FlasherTag.calibPMTFlasherCut = 100.;
+
+// every tag should be set to ApplyVeto or not
+FlasherTag.ApplyVeto = FALSE;
+CrossTrigTag.ApplyVeto = TRUE;
+ForceTrigTag.ApplyVeto = TRUE;
+RpcNoiseTag.ApplyVeto = TRUE;
+MuonTag.ApplyVeto = FALSE;
+
+//Set FanCycler as the Cycler of LAF
+LafMain.Cycler = "FanCycler";
+FanCycler.TimeWindow = { -10., 1e-1 };
+
+FanCycler.Tags = { "FanAdMuonTag" };
+FanAdMuonTag.ApplyVeto = FALSE;
+FanAdMuonTag.AdMuonThreshold = 20.; // MeV
+FanAdMuonTag.AdMuonCut = TRUE; //new admuon definition 
+FanAdMuonTag.ShowerMuonThreshold = 2500.; // MeV
+FanAdMuonTag.CoincWindow = { -2e-6, 2e-6 };  // +/-2us
+
+GlobalVar.NumADs = 4;
+//===================================
+//MuonVeto related configuration
+MuonTag.IwsNPmtThreshold = 12;
+MuonTag.OwsNPmtThreshold = 12;
+MuonTag.tagRPCMuon = USERPC;
+MuonTag.tagADMuon  = FALSE;
+MuonTag.AdMuonThreshold = 20.; // MeV
+MuonTag.ShowerMuonThreshold = 2500.; // MeV
+//for livetime
+MuonVeto.MuVetoWindow = 2.e-4; // s
+MuonVeto.AdMuVetoWindow = 1.e-3; // s
+MuonVeto.ShowerMuVetoWindow = 1.e-3; // s
+//for veto events ,is different from upper in IBD seclection 
+MuonVeto.MuVetoWindow4IbdSel = 2.e-4; // s
+MuonVeto.AdMuVetoWindow4IbdSel = 1.e-3; // s
+MuonVeto.ShowerMuVetoWindow4IbdSel = 1.e-3; // s
+
+MuonVeto.PreVetoWindow = 2.e-6; // s
+MuonVeto.useRPCVeto = USERPC;
