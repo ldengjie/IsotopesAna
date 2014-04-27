@@ -40,6 +40,10 @@ class SingleTree : public TSelector {
         TH2F* singleSpecVsTime[2][6];
         TH1F* signalWin[2][6];
         TH1F* offWin[2][6];
+        int offTheoNum[2][6];
+        int offRealNum[2][6];
+        //double offCoe[2][6];
+        bool isRealOff;
         TH2F* signalWinXY[2][6];
         TH2F* offWinXY[2][6];
         TH2F* signalWinRZ[2][6];

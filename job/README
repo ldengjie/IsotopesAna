@@ -17,7 +17,7 @@ SingleTree.C  SingleTree.h
 IsoNumFit.C
     #multiplt slices
         1 gcmR IsoNumFit
-        2 ./IsoNumFit P14A 2 C9 4. 0 50
+        2 ./IsoNumFit P14A 2 C9 0 0 50 // dataVer, siteNum=0, FitMode="B12", doSimFit=1, FitLowRange, FitHighRange
         3 submit to server. the job scripts are job/multiJob/*.csh ,you can submit them to server by 'source multi_submit.sh',or 'source multi_submit_64.sh'--dyb64q and 'source multi_submit_s.sh'--dybshortq
     #six slices
         1 gcmR IsoNumFit

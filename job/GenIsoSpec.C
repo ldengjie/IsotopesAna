@@ -26,12 +26,12 @@ int anaTree(int siteNum,string dataVer)
 	
     chainFile="/afs/ihep.ac.cn/users/l/lidj/largedata/IsotopesAna/";
     chainFile+=dataVer;
-    chainFile+="bak20/";
+    chainFile+="/";
     chainFile+=site;
     chainFile+="/*IsotopesAna.root";
     std::cout<<"chainFile  : "<<chainFile<<endl;
     chain.Add(chainFile.c_str());
-    std::cout<<"P12E : "<<chain.GetEntries()<<endl;
+    std::cout<<dataVer<<" : "<<chain.GetEntries()<<endl;
     if( dataVer=="P12E" )
     {
         chainFile="/afs/ihep.ac.cn/users/l/lidj/largedata/IsotopesAna/";
@@ -40,22 +40,22 @@ int anaTree(int siteNum,string dataVer)
         chainFile+=site;
         chainFile+="/*IsotopesAna.root";
         chain.Add(chainFile.c_str());
+        std::cout<<dataVer<<"+P12A : "<<chain.GetEntries()<<endl;
     }
-    std::cout<<"P12E+P12A : "<<chain.GetEntries()<<endl;
     string  siteAndDataVer=site+dataVer+"B12";
     std::cout<<"site And DataVer  : "<<siteAndDataVer<<endl;
     std::cout<<"lidj total single number  : "<<chain.GetEntries()<<endl;
 
     chain.Process("SingleTree",siteAndDataVer.c_str());
-    siteAndDataVer=site+dataVer+"Li8";
-    chain.Process("SingleTree",siteAndDataVer.c_str());
-    siteAndDataVer=site+dataVer+"C99";//C9
-    chain.Process("SingleTree",siteAndDataVer.c_str());
-    siteAndDataVer=site+dataVer+"N12";//C9
-    chain.Process("SingleTree",siteAndDataVer.c_str());
+    //siteAndDataVer=site+dataVer+"Li8";
+    //chain.Process("SingleTree",siteAndDataVer.c_str());
+    //siteAndDataVer=site+dataVer+"C99";//C9
+    //chain.Process("SingleTree",siteAndDataVer.c_str());
+    //siteAndDataVer=site+dataVer+"N12";//C9
+    //chain.Process("SingleTree",siteAndDataVer.c_str());
 	return 0;
 }
-int GenIsoSpec(string dataVer,int sitenum=0)
+    int GenIsoSpec(string dataVer,int sitenum=0)
 //int main(int argc, char *argv[])
 {
     //string dataVer=argv[1];

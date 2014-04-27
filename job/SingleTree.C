@@ -24,7 +24,7 @@ void SingleTree::Begin(TTree * /*tree*/)
 
     if( IsoMode=="B12" )
     {
-        LowEdge=4.0;
+        LowEdge=5.0;
         HighEdge=20.0;
         LowEdge4e=LowEdge;
         HighEdge4e=HighEdge;
@@ -36,7 +36,7 @@ void SingleTree::Begin(TTree * /*tree*/)
     {
         LowEdge=14.0;//for N12 time fit,that for Li8 has been done while B12.
         HighEdge=20.0;
-        LowEdge4e=4.0;
+        LowEdge4e=5.0;
         HighEdge4e=20.0;
         signalWinLow=0.6;
         signalWinHigh=4.0;
@@ -133,31 +133,33 @@ void SingleTree::Begin(TTree * /*tree*/)
         {
             for( int i=0 ; i<6 ; i++ )
             {
-                std::cout<<"6.1 "<<endl;
+                offTheoNum[j][i]=1;
+                offRealNum[j][i]=1;
+                //std::cout<<"6.1 "<<endl;
                 sprintf(nameChar,"%ssignalEnergy%sSlice%i_%0.1f_%0.1f",IsoMode.c_str(),ifRed[j].c_str(),i+1,LowEdge,HighEdge);
                 signalWin[j][i]=new TH1F(nameChar,nameChar,80,0,20);
-                std::cout<<"6.2 "<<endl;
+                //std::cout<<"6.2 "<<endl;
                 sprintf(nameChar,"%soffEnergy%sSlice%i_%0.1f_%0.1f",IsoMode.c_str(),ifRed[j].c_str(),i+1,LowEdge,HighEdge);
                 offWin[j][i]=new TH1F(nameChar,nameChar,80,0,20);
-                std::cout<<"6.3 "<<endl;
+                //std::cout<<"6.3 "<<endl;
                 sprintf(nameChar,"%ssignalXY%sSlice%i_%0.1f_%0.1f",IsoMode.c_str(),ifRed[j].c_str(),i+1,LowEdge,HighEdge);
-                std::cout<<"6.31 "<<endl;
+                //std::cout<<"6.31 "<<endl;
                 std::cout<<"nameChar  : "<<nameChar<<endl;
                 signalWinXY[j][i]=new TH2F(nameChar,nameChar,600,-3000.,3000.,600,-3000.,3000.);
-                std::cout<<"6.4 "<<endl;
+                //std::cout<<"6.4 "<<endl;
                 sprintf(nameChar,"%soffXY%sSlice%i_%0.1f_%0.1f",IsoMode.c_str(),ifRed[j].c_str(),i+1,LowEdge,HighEdge);
                 offWinXY[j][i]=new TH2F(nameChar,nameChar,600,-3000,3000,600,-3000,3000);
-                std::cout<<"6.5 "<<endl;
+                //std::cout<<"6.5 "<<endl;
                 sprintf(nameChar,"%ssignalRZ%sSlice%i_%0.1f_%0.1f",IsoMode.c_str(),ifRed[j].c_str(),i+1,LowEdge,HighEdge);
                 signalWinRZ[j][i]=new TH2F(nameChar,nameChar,300,0,3000,600,-3000,3000);
-                std::cout<<"6.6 "<<endl;
+                //std::cout<<"6.6 "<<endl;
                 sprintf(nameChar,"%soffRZ%sSlice%i_%0.1f_%0.1f",IsoMode.c_str(),ifRed[j].c_str(),i+1,LowEdge,HighEdge);
                 offWinRZ[j][i]=new TH2F(nameChar,nameChar,300,0,3000,600,-3000,3000);
-                std::cout<<"6.7 "<<endl;
+                //std::cout<<"6.7 "<<endl;
                 sprintf(nameChar,"%ssingleSpecVsTime%sSlice%i_%0.1f_%0.1f",IsoMode.c_str(),ifRed[j].c_str(),i+1,LowEdge,HighEdge);
                 singleSpecVsTime[j][i]=new TH2F(nameChar,nameChar,100000,0,100,400,0,20);
-                std::cout<<"6.8 "<<endl;
-                std::cout<<" "<<endl;
+                //std::cout<<"6.8 "<<endl;
+                //std::cout<<" "<<endl;
             }
             //sprintf(nameChar,"%ssignalWindow2AllMuon%s_%0.1f_%0.1f",IsoMode.c_str(),ifRed[j].c_str(),LowEdge,HighEdge);
             //signalWin[j][5]=new TH1F(nameChar,nameChar,80,0,20);
@@ -180,10 +182,10 @@ void SingleTree::SlaveBegin(TTree * /*tree*/)
 Bool_t SingleTree::Process(Long64_t entry)
 {
     GetEntry(entry);
-    if( entry%2000000==0 )
-    {
-        std::cout<<entry<<endl;
-    }
+    //if( entry%2000000==0 )
+    //{
+    //std::cout<<entry<<endl;
+    //}
     //isotopes spectrum
     if( genIsoSpec )
     {
@@ -206,7 +208,21 @@ Bool_t SingleTree::Process(Long64_t entry)
                     {
                         offWinXY[i][j]->Fill(x,y);
                         offWinRZ[i][j]->Fill(sqrt(x*x+y*y),z);
-                        offWin[i][j]->Fill(energy);
+                        offTheoNum[i][j]++;
+                        isRealOff=1; 
+                        for( int a=0 ; a<5 ; a++ )
+                        {
+                            if( T2lastMuon[a+4+6*i]>signalWinLow&&T2lastMuon[a+4+6*i]<signalWinHigh )
+                            {
+                                isRealOff=0;    
+                                break;
+                            }
+                        }
+                        if( isRealOff )
+                        {
+                            offWin[i][j]->Fill(energy);
+                            offRealNum[i][j]++;
+                        } 
                     }
                 }
                 singleSpecVsTime[i][5]->Fill(minT2allmuon[i],energy);
@@ -240,7 +256,6 @@ Bool_t SingleTree::Process(Long64_t entry)
         {
             singleLower[det-1]->Fill(energy);
         }
-
     }
     if( genTimeFitDis )
     {
@@ -257,10 +272,6 @@ Bool_t SingleTree::Process(Long64_t entry)
             minT2allmuon[0]=minT2allmuon[0]<T2lastMuon[j+4]?minT2allmuon[0]:T2lastMuon[j+4];
             minT2allmuon[1]=minT2allmuon[1]<T2lastMuon[j+10]?minT2allmuon[1]:T2lastMuon[j+10];
         }
-        //if( T2lastMuon[2+10]>0 )
-        //{
-        //std::cout<<"find one "<<T2lastMuon[2+10]<<endl;
-        //}
         time2Allmuon[0]->Fill(minT2allmuon[0]);
         time2Allmuon[1]->Fill(minT2allmuon[1]);
         for( int j=0 ; j<6 ; j++ )
@@ -268,11 +279,7 @@ Bool_t SingleTree::Process(Long64_t entry)
             time2lastmuon[j]->Fill();
             time2lastmuonNoRed[j]->Fill();
         }
-
-
     }
-
-
     return kTRUE;
 }
 
@@ -286,66 +293,82 @@ void SingleTree::Terminate()
     std::cout<<"Now is in Terminate() "<<endl;
     if( genIsoSpec )
     {
+        histname=Form("/afs/ihep.ac.cn/users/l/lidj/largedata/IsotopesAna/%s/EH%i/%sEH%i_hists.root",dataVer.Data(),site+1,dataVer.Data(),site+1);
+        TFile f(histname,"read");
+        if( f.IsZombie() )
+        {
+            std::cout<<"Error : can't open "<<histname<<endl;
+            return;
+        }
         for( int j=0 ; j<2 ; j++ )
         {
             for( int i=0 ; i<6 ; i++ )
             {
-                std::cout<<"1 "<<endl;
+                histname=Form("lidj/muonTimeInterval%s%i",ifRed[j].c_str(),i+1);
+                TH1F* h=(TH1F*)f.Get(histname);
+                if( !h )
+                {
+                    std::cout<<"Error : can't open TH1F "<<histname<<endl;
+                    return;
+                }
+                file->cd();
+                int offWinNum=(int)((offWinHigh-offWinLow)/(signalWinHigh-signalWinLow));
+                //std::cout<<"offWinNum  : "<<offWinNum<<endl;
+                double offMuonRate=h->Integral(h->FindBin(offWinLow),h->FindBin(9999));
+                //std::cout<<"offMuonRate  : "<<offMuonRate<<endl;
+                double offFrac=0.;
+                for( int k=0 ; k<offWinNum ; k++ )
+                {
+                    double offMuonRateTmp=h->Integral(h->FindBin(offWinLow+(signalWinHigh-signalWinLow)*k),h->FindBin(9999));
+                    //std::cout<<"offMuonRateTmp  : "<<offMuonRateTmp<<endl;
+                    offFrac+=offMuonRateTmp/offMuonRate;
+                }
+                double signalMuonRate=h->Integral(h->FindBin(signalWinLow),h->FindBin(9999));
+                //std::cout<<" signalMuonRate : "<<signalMuonRate<<endl;
+                //std::cout<<"signalFrac  : "<<signalMuonRate/offMuonRate<<endl;
+                histname=Form("%s %sSlice%i signalMuonRate:%10.0f offMuonRate:%10.0f signal/off:%5.5f offTheo/Real:%5.5f frac:%.5f",IsoMode.c_str(),ifRed[j].c_str(),i+1,signalMuonRate,offMuonRate,signalMuonRate/offMuonRate,(double)(offTheoNum[j][i])/offRealNum[j][i],offFrac);
+                std::cout<<histname<<endl;
+                delete h;
+                //std::cout<<"1 "<<endl;
                 //histname=Form("%sSpecColor",IsoMode.c_str());
                 //c[j][i]=new TCanvas(histname,"IsoSpec",600,400);
                 signalWin[j][i]->SetLineColor(kRed);
-                std::cout<<"1.1 "<<endl;
+                //std::cout<<"1.1 "<<endl;
                 //histname=Form("%sSpecColor",IsoMode.c_str());
                 signalWin[j][i]->GetXaxis()->SetTitle("Energy(MeV)");
-                std::cout<<"1.2 "<<endl;
+                //std::cout<<"1.2 "<<endl;
                 signalWin[j][i]->GetYaxis()->SetTitle("Entries");
-                std::cout<<"1.3 "<<endl;
+                //std::cout<<"1.3 "<<endl;
                 signalWin[j][i]->SetStats(kFALSE); 
-                std::cout<<"1.4 "<<endl;
+                //std::cout<<"1.4 "<<endl;
                 //signalWin[j][i]->Draw();
                 offWin[j][i]->SetLineColor(kGreen);
-                std::cout<<"1.5 "<<endl;
+                //std::cout<<"1.5 "<<endl;
                 offWin[j][i]->SetStats(kFALSE); 
-                std::cout<<"1.6 "<<endl;
+                //std::cout<<"1.6 "<<endl;
                 //offWin[j][i]->Draw("same");
                 histname=Form("%sSpec%sSlice%i_%0.1f_%0.1f",IsoMode.c_str(),ifRed[j].c_str(),i+1,LowEdge4e,HighEdge4e);
-                std::cout<<"2 "<<endl;
+                //std::cout<<"2 "<<endl;
                 isoSpec[j][i]=new TH1F(histname,histname,80,0,20);
-                std::cout<<"3 "<<endl;
+                //std::cout<<"3 "<<endl;
                 isoSpec[j][i]->Sumw2();
                 //isoSpec[j][i]->Add(signalWin[j][i],offWin[j][i],1,-0.5);
-                std::cout<<"4 "<<endl;
-                isoSpec[j][i]->Add(signalWin[j][i],offWin[j][i],1,-1);
-                std::cout<<"5 "<<endl;
+                //std::cout<<"4 "<<endl;
+                isoSpec[j][i]->Add(signalWin[j][i],offWin[j][i],1,-(1/(offFrac*offMuonRate/signalMuonRate*offRealNum[j][i]/offTheoNum[j][i])));
+                //std::cout<<"5 "<<endl;
                 isoSpec[j][i]->SetLineColor(kBlue);
                 isoSpec[j][i]->SetStats(kFALSE);
                 isoSpec[j][i]->SetMarkerStyle(20);
                 isoSpec[j][i]->SetMarkerSize(0.7);
                 isoSpec[j][i]->SetMarkerColor(kBlue);
                 isoSpec[j][i]->SetOption("E");
-                //isoSpec[j][i]->Draw("sameE");
-                //TLegend *legend=new TLegend(.4,.65,.79,.89);
-                //histname=Form("signalWin[j][i] : %0.3f ~ %0.3f",signalWin[j][i]Low,signalWin[j][i]High);
-                //legend->AddEntry(signalWin[j][i],histname,"lp");
-                //histname=Form("offWin[j][i] : %0.3f ~ %0.3f",offWin[j][i]Low,offWin[j][i]High);
-                //legend->AddEntry(offWin[j][i],histname,"lp");
-                //histname=Form("%sSpec",IsoMode.c_str());
-                //legend->AddEntry(isoSpec[j][i],histname,"lp");
-                //legend->SetFillColor(0);
-                //legend->Draw("same");
-
-                //THStack* hs = new THStack("hs","");
-                //hs->Add(signalWin[j][i]);
-                //hs->Add(offWin[j][i]);
-                //hs->Draw();
-                //isoSpec[j][i]->Draw("same");
-                //legend->Draw("same");
                 signalWin[j][i]->Write();
                 offWin[j][i]->Write();
                 isoSpec[j][i]->Write();
-                std::cout<<"6 "<<endl;
+                //std::cout<<"6 "<<endl;
                 singleSpecVsTime[j][i]->Write();
-                std::cout<<"7 "<<endl;
+                //std::cout<<"7 "<<endl;
+                file->cd();
                 signalWinXY[j][i]->Write();
                 offWinXY[j][i]->Write();
                 signalWinRZ[j][i]->Write();
@@ -354,6 +377,7 @@ void SingleTree::Terminate()
 
             }
         }
+        f.Close();
     }
 
     if( genAmCNeu )

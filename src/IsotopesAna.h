@@ -67,8 +67,12 @@ class IsotopesAna : public AlgBase
 	TTimeStamp lastshowermuonTrigtimeNoRed[6][4];
     TH1F* time2lastshowermuonNoRed[6];
 	TH1F* showermuonNumNoRed[6];
+    bool statMuonTimeInterval;
+	TH1F* muonTimeIntervalNoRed[6];
+	TH1F* muonTimeInterval[6];
 
 	TTimeStamp lastshowermuonTrigtime[6][4];
+	TTimeStamp lastlastshowermuonTrigtime[6][4];
 	TTimeStamp lastshowermuonTrigtimeTmp[6][4];
 	vector<TTimeStamp> lastshowermuonTrigtimeVec[6][4];
     TH1F* time2lastshowermuon[6];
