@@ -24,7 +24,7 @@ void SingleTree::Begin(TTree * /*tree*/)
 
     if( IsoMode=="B12" )
     {
-        LowEdge=5.0;
+        LowEdge=5.5;
         HighEdge=20.0;
         LowEdge4e=LowEdge;
         HighEdge4e=HighEdge;
@@ -36,7 +36,7 @@ void SingleTree::Begin(TTree * /*tree*/)
     {
         LowEdge=14.0;//for N12 time fit,that for Li8 has been done while B12.
         HighEdge=20.0;
-        LowEdge4e=5.0;
+        LowEdge4e=5.5;
         HighEdge4e=20.0;
         signalWinLow=0.6;
         signalWinHigh=4.0;

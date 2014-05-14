@@ -60,45 +60,45 @@ bool IsotopesAna::initialize()
 	liveTimeSvc = dynamic_cast<LiveTimeSvc*>(service("LiveTimeSvc"));
 	muonVeto_l = MuonVeto::instance();
 
-    for( int i=0 ; i<7 ; i++ )
+    for( int j=0 ; j<7 ; j++ )
     {
-        ADMuonNum[i]=0;
+        ADMuonNum[j]=0;
     }
     
-    for( int i=0 ; i<6 ; i++ )
+    for( int j=0 ; j<6 ; j++ )
     {
         histName="time2lastshowermuon";
-        histName+=i+1;
-        time2lastshowermuon[i] = new TH1F(histName,"time2lastshowermuon",100000,0.,100.); 
-	    ntupleSvc()->attach("FILE1/lidj",time2lastshowermuon[i]);
+        histName+=j+1;
+        time2lastshowermuon[j] = new TH1F(histName,"time2lastshowermuon",100000,0.,100.); 
+	    ntupleSvc()->attach("FILE1/lidj",time2lastshowermuon[j]);
         histName="showermuonNum";
-        histName+=i+1;
-	    showermuonNum[i] = new TH1F(histName,"number of AD showermuon",liveTimeSvc->nBins(),liveTimeSvc->startTime().AsDouble(),liveTimeSvc->endTime().AsDouble());
-	    ntupleSvc()->attach("FILE1/lidj",showermuonNum[i]);
+        histName+=j+1;
+	    showermuonNum[j] = new TH1F(histName,"number of AD showermuon",liveTimeSvc->nBins(),liveTimeSvc->startTime().AsDouble(),liveTimeSvc->endTime().AsDouble());
+	    ntupleSvc()->attach("FILE1/lidj",showermuonNum[j]);
         histName="time2lastshowermuon";
-        histName+=i+1;
+        histName+=j+1;
         histName+="4Li";
-        time2lastshowermuon4Li[i] = new TH1F(histName,"time2lastshowermuon Li",100000,0.,100.); 
-	    ntupleSvc()->attach("FILE1/lidj",time2lastshowermuon4Li[i]);
+        time2lastshowermuon4Li[j] = new TH1F(histName,"time2lastshowermuon Li",100000,0.,100.); 
+	    ntupleSvc()->attach("FILE1/lidj",time2lastshowermuon4Li[j]);
         histName="time2lastshowermuonNoRed";
-        histName+=i+1;
-        time2lastshowermuonNoRed[i] = new TH1F(histName,"time2lastshowermuonNoRed",100000,0.,100.); 
-	    ntupleSvc()->attach("FILE1/lidj",time2lastshowermuonNoRed[i]);
+        histName+=j+1;
+        time2lastshowermuonNoRed[j] = new TH1F(histName,"time2lastshowermuonNoRed",100000,0.,100.); 
+	    ntupleSvc()->attach("FILE1/lidj",time2lastshowermuonNoRed[j]);
         histName="showermuonNumNoRed";
-        histName+=i+1;
-	    showermuonNumNoRed[i] = new TH1F(histName,"number of AD showermuon",liveTimeSvc->nBins(),liveTimeSvc->startTime().AsDouble(),liveTimeSvc->endTime().AsDouble());
-	    ntupleSvc()->attach("FILE1/lidj",showermuonNumNoRed[i]);
+        histName+=j+1;
+	    showermuonNumNoRed[j] = new TH1F(histName,"number of AD showermuon",liveTimeSvc->nBins(),liveTimeSvc->startTime().AsDouble(),liveTimeSvc->endTime().AsDouble());
+	    ntupleSvc()->attach("FILE1/lidj",showermuonNumNoRed[j]);
 
         if( statMuonTimeInterval )
         {
             histName="muonTimeIntervalNoRed";
-            histName+=i+1;
-            muonTimeIntervalNoRed[i] = new TH1F(histName,"time interval between muon in each slice",10000000,0.,10000.);
-            ntupleSvc()->attach("FILE1/lidj",muonTimeIntervalNoRed[i]);
+            histName+=j+1;
+            muonTimeIntervalNoRed[j] = new TH1F(histName,"time interval between muon in each slice",10000000,0.,10000.);
+            ntupleSvc()->attach("FILE1/lidj",muonTimeIntervalNoRed[j]);
             histName="muonTimeInterval";
-            histName+=i+1;
-            muonTimeInterval[i] = new TH1F(histName,"time interval between muon in each slice",10000000,0.,10000.);
-            ntupleSvc()->attach("FILE1/lidj",muonTimeInterval[i]);
+            histName+=j+1;
+            muonTimeInterval[j] = new TH1F(histName,"time interval between muon in each slice",10000000,0.,10000.);
+            ntupleSvc()->attach("FILE1/lidj",muonTimeInterval[j]);
         }
     }
     time2Allmuon=new TH1F("time2Allmuon","time2Allmuon",100000,0.,100.);
