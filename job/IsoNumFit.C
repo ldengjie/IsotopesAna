@@ -303,19 +303,22 @@ void genIsoPdf(isoItem* myIso,fitInf* myfit)
     nameStr2=Form("%s distribution",myIso->isoName.c_str());
     myIso->fitExpPdf=new RooExponential(nameStr,nameStr2, *xt, *myIso->fitLambda);
 
-    xt->setRange("timeTRange",myfit->timeTlow,myfit->timeThigh);
-    RooAbsReal* tTmpCoe =myIso->fitExpPdf->createIntegral(*xt,NormSet(*xt),Range("timeTRange"));
-    std::cout<<"tTmpCoe  : "<<tTmpCoe->getVal()<<endl;
+    //it's necessary to calculate here ?no
+    //xt->setRange("timeTRange",myfit->timeTlow,myfit->timeThigh);
+    //RooAbsReal* timeTTmpCoe =myIso->fitExpPdf->createIntegral(*xt,NormSet(*xt),Range("timeTRange"));
+    //std::cout<<"timeTTmpCoe  : "<<timeTTmpCoe->getVal()<<endl;
     nameStr=Form("%stimeTCutCoe",myIso->isoName.c_str());
-    myIso->timeTCutCoe=new RooRealVar(nameStr,nameStr,tTmpCoe->getVal());
-    delete tTmpCoe;
-
-    xt->setRange("specTRange",myfit->specTlow,myfit->specThigh);
-    RooAbsReal* tTmpCoe2 =myIso->fitExpPdf->createIntegral(*xt,NormSet(*xt),Range("specTRange"));
-    std::cout<<"tTmpCoe2  : "<<tTmpCoe2->getVal()<<endl;
+    myIso->timeTCutCoe=new RooRealVar(nameStr,nameStr,1);
+    //myIso->timeTCutCoe=new RooRealVar(nameStr,nameStr,timeTTmpCoe->getVal());
+    //delete timeTTmpCoe;
+    //
+    //xt->setRange("specTRange",myfit->specTlow,myfit->specThigh);
+    //RooAbsReal* specTTmpCoe =myIso->fitExpPdf->createIntegral(*xt,NormSet(*xt),Range("specTRange"));
+    //std::cout<<"specTTmpCoe  : "<<specTTmpCoe->getVal()<<endl;
     nameStr=Form("%sspecTCutCoe",myIso->isoName.c_str());
-    myIso->specTCutCoe=new RooRealVar(nameStr,nameStr,tTmpCoe2->getVal());
-    delete tTmpCoe2;
+    myIso->specTCutCoe=new RooRealVar(nameStr,nameStr,1);
+    //myIso->specTCutCoe=new RooRealVar(nameStr,nameStr,specTTmpCoe->getVal());
+    //delete specTTmpCoe;
 
 
     nameStr=Form("ExtendPdf%s",myIso->isoName.c_str());
@@ -337,25 +340,25 @@ void genIsoPdf(isoItem* myIso,fitInf* myfit)
         myIso->ehd->plotOn(framee,LineColor(kRed),DataError(RooAbsData::None));
         //ce->cd(2) ;  framee->Draw() ;
 
-        xe->setRange("specERange",myfit->specElow,myfit->specEhigh);
-        RooAbsReal* eTmpCoe =myIso->fitHistPdf->createIntegral(*xe,NormSet(*xe),Range("specERange"));
-        nameStr=Form("%sspecECutCoe",myIso->isoName.c_str());
-        myIso->specECutCoe=new RooRealVar(nameStr,nameStr,eTmpCoe->getVal());
-        std::cout<<"eTmpCoe  : "<<eTmpCoe->getVal()<<endl;
-        delete eTmpCoe;
-
         xe->setRange("timeERange",myfit->timeElow,myfit->timeEhigh);
-        RooAbsReal* eTmpCoe2 =myIso->fitHistPdf->createIntegral(*xe,NormSet(*xe),Range("timeERange"));
+        RooAbsReal* timeETmpCoe =myIso->fitHistPdf->createIntegral(*xe,NormSet(*xe),Range("timeERange"));
         nameStr=Form("%stimeECutCoe",myIso->isoName.c_str());
-        myIso->timeECutCoe=new RooRealVar(nameStr,nameStr,eTmpCoe2->getVal());
-        std::cout<<"eTmpCoe2  : "<<eTmpCoe2->getVal()<<endl;
-        delete eTmpCoe2;
+        myIso->timeECutCoe=new RooRealVar(nameStr,nameStr,timeETmpCoe->getVal());
+        std::cout<<"timeETmpCoe  : "<<timeETmpCoe->getVal()<<endl;
+        delete timeETmpCoe;
+
+        xe->setRange("specERange",myfit->specElow,myfit->specEhigh);
+        RooAbsReal* specETmpCoe =myIso->fitHistPdf->createIntegral(*xe,NormSet(*xe),Range("specERange"));
+        nameStr=Form("%sspecECutCoe",myIso->isoName.c_str());
+        myIso->specECutCoe=new RooRealVar(nameStr,nameStr,specETmpCoe->getVal());
+        std::cout<<"specETmpCoe  : "<<specETmpCoe->getVal()<<endl;
+        delete specETmpCoe;
 
         //myIso->specECutCoe=myIso->fitHistPdf->createIntegral(*xe,NormSet(*xe));
         nameStr=Form("%seFitNum",myIso->isoName.c_str());
-        myIso->eFitNum=new RooFormulaVar(nameStr,nameStr,"@0/@1@2*@3*@4",RooArgList(*(myIso->tFitNum),*(myIso->timeTCutCoe),*(myIso->timeECutCoe),*(myIso->specECutCoe),*(myIso->specTCutCoe)));
+        myIso->eFitNum=new RooFormulaVar(nameStr,nameStr,"@0/@1/@2*@3*@4",RooArgList(*(myIso->tFitNum),*(myIso->timeTCutCoe),*(myIso->timeECutCoe),*(myIso->specECutCoe),*(myIso->specTCutCoe)));
         RooPlot* framee1 = xe->frame(Title("spec p.d.f")) ;
-        myIso->fitHistPdf->plotOn(framee1),LineColor(kBlue) ;
+        myIso->fitHistPdf->plotOn(framee1,LineColor(kBlue)) ;
         ce->cd(2) ;  framee1->Draw() ;
         nameStr=Form("P14A/dataEps/%sspecHistogramVsp.d.f.eps",myIso->isoName.c_str());
         ce->SaveAs(nameStr);
@@ -388,12 +391,13 @@ void genFitPdf(fitInf* fitinf)
     std::cout<<Form(">>> >>> prepare %-3s fit SpecFitPdf ",fitinf->mode.c_str())<<endl;
     fitinf->specFitPdf=new RooAddPdf("specMode","specMode",specFitComList,specFitNumList);
     int checkNum=10000;
+    double checkWidth=(fitinf->specEhigh-fitinf->specElow)/checkNum;
     for( int i=1 ; i<checkNum; i++ )
     {
-        if(fitinf->specFitPdf->getVal(*xe=5+i*(fitinf->specEhigh-fitinf->specElow)/checkNum)==0  )
+        if(fitinf->specFitPdf->getVal(*xe=fitinf->specElow+i*checkWidth)==0  )
         {
-            std::cout<<"Find specFitPdf zero  at : "<<5+i*(fitinf->specEhigh-fitinf->specElow)/checkNum<<endl;
-            fitinf->histPdfZero=5+i*(fitinf->specEhigh-fitinf->specElow)/checkNum;
+            std::cout<<"Find specFitPdf zero  at : "<<fitinf->specElow+i*checkWidth<<endl;
+            fitinf->histPdfZero=fitinf->specElow+i*checkWidth;
             break;
         }
 
@@ -521,7 +525,7 @@ void prepareInf( string dataVer,string site,string fitmode,bool doSimFit)
         if( fit[fitmode]->com[i]!="" )
         {
             //genIsoPdf(iso[fit[fitmode]->com[i]],fit[fitmode]->timeTlow,fit[fitmode]->timeThigh,fit[fitmode]->specElow,fit[fitmode]->specEhigh); 
-            genIsoPdf(iso[fit[fitmode]->com[i]],fit[fitmode]); 
+            genIsoPdf(iso[fit[fitmode]->com[i]],fit[fitmode]); //calculate kinds of coe.
         }
     }
 
@@ -616,6 +620,25 @@ int doFit(int siteNum,string dataVer,string fitMode,bool doSimFit,double fitLowR
             {
                 std::cout<<"now is  : "<<j+1<<endl;
                 rateMu->setVal(-fit[fitMode]->muonRate[j]);
+                xt->setRange(0,1.e6);
+                xt->setRange("timeTRange",fit[fitMode]->timeTlow,fit[fitMode]->timeThigh);
+                xt->setRange("specTRange",fit[fitMode]->specTlow,fit[fitMode]->specThigh);
+                for( map<string,isoItem*>::iterator it=fit[fitMode]->comMap.begin() ; it!=fit[fitMode]->comMap.end() ; it++ )
+                {
+                    RooAbsReal* timeTTmpCoe =it->second->fitExpPdf->createIntegral(*xt,NormSet(*xt),Range("timeTRange"));
+                    std::cout<<"isoname  : "<<it->second->isoName<<endl;
+                    std::cout<<"timeTTmpCoe  : "<<timeTTmpCoe->getVal()<<endl;
+                    it->second->timeTCutCoe->setVal(timeTTmpCoe->getVal());
+                    //it->second->timeTCutCoe=new RooRealVar(nameStr,nameStr,timeTTmpCoe->getVal());
+                    delete timeTTmpCoe;
+                    RooAbsReal* specTTmpCoe =it->second->fitExpPdf->createIntegral(*xt,NormSet(*xt),Range("specTRange"));
+                    std::cout<<"specTTmpCoe  : "<<specTTmpCoe->getVal()<<endl;
+                    nameStr=Form("%sspecTCutCoe",it->second->isoName.c_str());
+                    it->second->specTCutCoe->setVal(specTTmpCoe->getVal());
+                    //it->second->specTCutCoe=new RooRealVar(nameStr,nameStr,specTTmpCoe->getVal());
+                    delete specTTmpCoe;
+                }
+                xt->setRange(fit[fitMode]->timeTlow,fit[fitMode]->timeThigh);
                 //Num_tot[j]=hh[j]->Integral(1,hh[j]->FindBin(fit[fitMode]->timeThigh));
                 if( fit[fitMode]->isbinned  )
                 {
@@ -639,19 +662,19 @@ int doFit(int siteNum,string dataVer,string fitMode,bool doSimFit,double fitLowR
 
                 for( map<string,isoItem*>::iterator it=fit[fitMode]->comMap.begin() ; it!=fit[fitMode]->comMap.end() ; it++ )
                 {
-                    it->second->tNumInSlice[j]=it->second->tFitNum->getVal(0); 
+                    it->second->tNumInSlice[j]=it->second->tFitNum->getValV(); 
                     it->second->tNumErrInSlice[j]=it->second->tFitNum->getError(); 
                     //it->second->tFitNum->setError(0); 
                     if( it->second->isoName!="Bkg" )
                     {
-                        it->second->realNumInSlice[j]=it->second->tFitNum->getVal(0)/it->second->timeECutCoe->getValV()/it->second->timeTCutCoe->getValV(); 
+                        it->second->realNumInSlice[j]=it->second->tFitNum->getValV()/it->second->timeECutCoe->getValV()/it->second->timeTCutCoe->getValV(); 
                         it->second->realNumErrInSlice[j]=it->second->tFitNum->getError()/it->second->timeECutCoe->getValV()/it->second->timeTCutCoe->getValV(); 
                     }
-                    it->second->tauInSlice[j]=it->second->fitTau->getVal(0);
+                    it->second->tauInSlice[j]=it->second->fitTau->getValV();
                     it->second->tauErrInSlice[j]=it->second->fitTau->getError();
                     if( j!=5)
                     {
-                        //it->second->tNum+=it->second->tFitNum->getVal(0);
+                        //it->second->tNum+=it->second->tFitNum->getValV();
                         //it->second->tNumErr+=it->second->tFitNum->getError()*it->second->tFitNum->getError();
                         it->second->tNum+=it->second->realNumInSlice[j];
                         it->second->tNumErr+=it->second->realNumErrInSlice[j]*it->second->realNumErrInSlice[j];
@@ -765,16 +788,18 @@ int doFit(int siteNum,string dataVer,string fitMode,bool doSimFit,double fitLowR
             xt->setRange("specTRange",fit[fitMode]->specTlow,fit[fitMode]->specThigh);
             for( map<string,isoItem*>::iterator it=fit[fitMode]->comMap.begin() ; it!=fit[fitMode]->comMap.end() ; it++ )
             {
-                RooAbsReal* tTmpCoe =it->second->fitExpPdf->createIntegral(*xt,NormSet(*xt),Range("timeTRange"));
+                RooAbsReal* timeTTmpCoe =it->second->fitExpPdf->createIntegral(*xt,NormSet(*xt),Range("timeTRange"));
                 std::cout<<"isoname  : "<<it->second->isoName<<endl;
-                std::cout<<"tTmpCoe  : "<<tTmpCoe->getVal()<<endl;
-                it->second->timeTCutCoe->setVal(tTmpCoe->getVal());
-                delete tTmpCoe;
-                RooAbsReal* tTmpCoe2 =it->second->fitExpPdf->createIntegral(*xt,NormSet(*xt),Range("specTRange"));
-                std::cout<<"tTmpCoe2  : "<<tTmpCoe2->getVal()<<endl;
+                std::cout<<"timeTTmpCoe  : "<<timeTTmpCoe->getVal()<<endl;
+                it->second->timeTCutCoe->setVal(timeTTmpCoe->getVal());
+                //it->second->timeTCutCoe=new RooRealVar(nameStr,nameStr,timeTTmpCoe->getVal());
+                delete timeTTmpCoe;
+                RooAbsReal* specTTmpCoe =it->second->fitExpPdf->createIntegral(*xt,NormSet(*xt),Range("specTRange"));
+                std::cout<<"specTTmpCoe  : "<<specTTmpCoe->getVal()<<endl;
                 nameStr=Form("%sspecTCutCoe",it->second->isoName.c_str());
-                it->second->specTCutCoe=new RooRealVar(nameStr,nameStr,tTmpCoe2->getVal());
-                delete tTmpCoe2;
+                it->second->specTCutCoe->setVal(specTTmpCoe->getVal());
+                //it->second->specTCutCoe=new RooRealVar(nameStr,nameStr,specTTmpCoe->getVal());
+                delete specTTmpCoe;
             }
             xt->setRange(fit[fitMode]->timeTlow,fit[fitMode]->timeThigh);
             RooCategory sample("sample","sample") ;
@@ -812,10 +837,10 @@ int doFit(int siteNum,string dataVer,string fitMode,bool doSimFit,double fitLowR
             std::cout<<"comMap.size  : "<<fit[fitMode]->comMap.size()<<endl;
             for( map<string,isoItem*>::iterator it=fit[fitMode]->comMap.begin() ; it!=fit[fitMode]->comMap.end() ; it++ )
             {
-                it->second->tNumInSlice[j]=it->second->tFitNum->getVal(0); 
-                //it->second->eNumInSlice[j]=it->second->eFitNum->getVal(0); 
+                it->second->tNumInSlice[j]=it->second->tFitNum->getValV(); 
+                //it->second->eNumInSlice[j]=it->second->eFitNum->getValV(); 
                 //it->second->tNumInSlice[j];
-                ////it->second->tFitNum->getVal(0); 
+                ////it->second->tFitNum->getValV(); 
                 ////(*it->second->tFitNum)->getVal(0); 
                 //std::cout<<"it->first  : "<<it->first<<endl;
                 //std::cout<<"iso[fitMode]  : "<<iso[fitMode]<<endl;
@@ -824,27 +849,29 @@ int doFit(int siteNum,string dataVer,string fitMode,bool doSimFit,double fitLowR
                 //std::cout<<"it->second->tFitNum  : "<<&(it->second->tFitNum)<<endl;
                 it->second->tNumErrInSlice[j]=it->second->tFitNum->getError(); 
 
-                it->second->tauInSlice[j]=it->second->fitTau->getVal(0);
+                it->second->tauInSlice[j]=it->second->fitTau->getValV();
                 it->second->tauErrInSlice[j]=it->second->fitTau->getError();
                 //std::cout<<"isoName: "<<it->second->isoName<<endl;
-                //std::cout<<"tFitNum  : "<<it->second->tFitNum->getVal(0)<<endl;
+                //std::cout<<"tFitNum  : "<<it->second->tFitNum->getValV()<<endl;
                 //std::cout<<"assgin to eNumInSlice "<<endl;
                 if( it->second->isoName!="Bkg" )
                 {
-                    it->second->eNumInSlice[j]=it->second->eFitNum->getVal(0); 
+                    it->second->eNumInSlice[j]=it->second->eFitNum->getValV(); 
                     //it->second->eNumErrInSlice[j]=it->second->eFitNum->getError(); 
-                    it->second->realNumInSlice[j]=it->second->tFitNum->getVal(0)/it->second->timeECutCoe->getValV()/it->second->timeTCutCoe->getValV(); 
+                    it->second->realNumInSlice[j]=it->second->tFitNum->getValV()/it->second->timeECutCoe->getValV()/it->second->timeTCutCoe->getValV(); 
                     it->second->realNumErrInSlice[j]=it->second->tFitNum->getError()/it->second->timeECutCoe->getValV()/it->second->timeTCutCoe->getValV(); 
                 }
                 //std::cout<<"finished "<<endl;
                 if( j!=5)
                 {
-                    it->second->tNum+=it->second->tFitNum->getVal(0);
-                    it->second->tNumErr+=it->second->tFitNum->getError()*it->second->tFitNum->getError();
+                    it->second->tNum+=it->second->realNumInSlice[j];
+                    it->second->tNumErr+=it->second->realNumErrInSlice[j]*it->second->realNumErrInSlice[j];
+                    //it->second->tNum+=it->second->tFitNum->getValV();
+                    //it->second->tNumErr+=it->second->tFitNum->getError()*it->second->tFitNum->getError();
                     if( it->second->isoName!="Bkg" )
                     {
 
-                        it->second->eNum+=it->second->eFitNum->getVal(0);
+                        it->second->eNum+=it->second->eFitNum->getValV();
                         //it->second->eNumErr+=it->second->eFitNum->getError()*it->second->eFitNum->getError();
                     }
                 }
@@ -867,9 +894,9 @@ int doFit(int siteNum,string dataVer,string fitMode,bool doSimFit,double fitLowR
             delete timeChi2;
             TString timeChiStr ;
             timeChiStr = "Chi/ndf";
-            //leg1->AddEntry((TObject*)0,timeChiStr,"");
+            leg1->AddEntry((TObject*)0,timeChiStr,"");
             timeChiStr = Form(" %2.2f / %i = %2.2f", fit[fitMode]->timeChi[j],fit[fitMode]->timeNdf,fit[fitMode]->timeChi[j]/fit[fitMode]->timeNdf);
-            //leg1->AddEntry((TObject*)0,timeChiStr,"");
+            leg1->AddEntry((TObject*)0,timeChiStr,"");
             leg1->SetHeader(Form("---%s Fit---",fitMode.c_str()));
             leg1->SetFillColor(10);
             //gPad->SetLogy();
@@ -903,9 +930,9 @@ int doFit(int siteNum,string dataVer,string fitMode,bool doSimFit,double fitLowR
             delete specChi2;
             TString specChiStr;
             specChiStr = "Chi/ndf";
-            //leg2->AddEntry((TObject*)0,specChiStr,"");
+            leg2->AddEntry((TObject*)0,specChiStr,"");
             specChiStr = Form(" %2.2f / %i = %2.2f", fit[fitMode]->specChi[j],fit[fitMode]->specNdf,fit[fitMode]->specChi[j]/fit[fitMode]->specNdf);
-            //leg2->AddEntry((TObject*)0,specChiStr,"");
+            leg2->AddEntry((TObject*)0,specChiStr,"");
             leg2->SetHeader(Form("---%s Fit---",fitMode.c_str()));
             leg2->SetFillColor(10);
             nameStr=Form("%s%s%sSimultaneousFit%sSlice%i",site.c_str(),dataVer.c_str(),fitMode.c_str(),fit[fitMode]->ifRed.c_str(),j+1);
@@ -928,9 +955,17 @@ int doFit(int siteNum,string dataVer,string fitMode,bool doSimFit,double fitLowR
     std::cout<<"      |       Total number      |     Rate(/day/AD) "<<endl;
     for( int k=0;k<(int)(fit[fitMode]->comMap.size());k++) 
     {
-        fit[fitMode]->comMap[fit[fitMode]->com[k]]->rate=fit[fitMode]->comMap[fit[fitMode]->com[k]]->tNum/(fit[fitMode]->liveTime/(24*3600));
-        fit[fitMode]->comMap[fit[fitMode]->com[k]]->rateErr=sqrt(fit[fitMode]->comMap[fit[fitMode]->com[k]]->tNumErr)/(fit[fitMode]->liveTime/(24*3600));
-        std::cout<<Form(" %-3s  | %10.1f +- %8.1f  | %7.1f +- %7.1f",fit[fitMode]->comMap[fit[fitMode]->com[k]]->isoName.c_str(),fit[fitMode]->comMap[fit[fitMode]->com[k]]->tNum,sqrt(fit[fitMode]->comMap[fit[fitMode]->com[k]]->tNumErr),fit[fitMode]->comMap[fit[fitMode]->com[k]]->rate,fit[fitMode]->comMap[fit[fitMode]->com[k]]->rateErr)<<endl;
+        double totalTimeCoe=1.;
+        if( fit[fitMode]->com[k]!="Bkg" )
+        {
+            totalTimeCoe=(fit[fitMode]->comMap[fit[fitMode]->com[k]]->timeECutCoe->getValV())*(fit[fitMode]->comMap[fit[fitMode]->com[k]]->timeTCutCoe->getValV());
+            cout<<"totalTimeCoe  : "<<fit[fitMode]->comMap[fit[fitMode]->com[k]]->timeECutCoe->getValV()<<" X "<<fit[fitMode]->comMap[fit[fitMode]->com[k]]->timeTCutCoe->getValV()<<" = "<<totalTimeCoe<<endl;
+        }
+        cout<<"tNum  : "<<fit[fitMode]->comMap[fit[fitMode]->com[k]]->tNum<<endl;
+        cout<<"tNumErr  : "<<sqrt(fit[fitMode]->comMap[fit[fitMode]->com[k]]->tNumErr)<<endl;
+        fit[fitMode]->comMap[fit[fitMode]->com[k]]->rate=fit[fitMode]->comMap[fit[fitMode]->com[k]]->tNum/totalTimeCoe/(fit[fitMode]->liveTime/(24*3600));
+        fit[fitMode]->comMap[fit[fitMode]->com[k]]->rateErr=sqrt(fit[fitMode]->comMap[fit[fitMode]->com[k]]->tNumErr)/totalTimeCoe/(fit[fitMode]->liveTime/(24*3600));
+        std::cout<<Form(" %-3s  | %10.1f +- %8.1f  | %7.1f +- %7.1f",fit[fitMode]->comMap[fit[fitMode]->com[k]]->isoName.c_str(),fit[fitMode]->comMap[fit[fitMode]->com[k]]->tNum/totalTimeCoe,sqrt(fit[fitMode]->comMap[fit[fitMode]->com[k]]->tNumErr)/totalTimeCoe,fit[fitMode]->comMap[fit[fitMode]->com[k]]->rate,fit[fitMode]->comMap[fit[fitMode]->com[k]]->rateErr)<<endl;
     }
 
     for( int j=0 ; j<6 ; j++ )
@@ -1077,9 +1112,9 @@ int main(int argc, char *argv[])
     string dataVer;
     int siteNum=0;
     string FitMode;
+    bool doSimFit=0;
     double FitLowRange=0.;
     double FitHighRange=0.;
-    bool doSimFit=0;
     std::cout<<"argc  : "<<argc<<endl;
     dataVer=argv[1];
     std::cout<<"dataVer  : "<<dataVer<<endl;
