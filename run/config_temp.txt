@@ -14,8 +14,8 @@ LafMain.Dlls += {"IsotopesAna"};
 AlgMgr.Contents += {"IsotopesAna"};
 
 //====================================
-IsotopesAna.EnergyLow = 4.0;  // MeV
-IsotopesAna.EnergyHigh = 20.; // MeV
+IsotopesAna.EnergyLow = 4.0;  // for singles
+IsotopesAna.EnergyHigh = 20.; // for singles
 IsotopesAna.PromptEnergyLow4Li = 3.5;  // MeV
 IsotopesAna.PromptEnergyHigh4Li = 12.; // MeV
 IsotopesAna.DelayedEnergyLow4Li = 6.;  // MeV

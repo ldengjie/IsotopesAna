@@ -16,6 +16,8 @@
 #include <TH2F.h>
 #include  <TCanvas.h>
 #include  <TLegend.h>
+#include  <string>
+#include  <TString.h>
 
 class SingleTree : public TSelector {
     public :
@@ -23,7 +25,9 @@ class SingleTree : public TSelector {
 
         bool genIsoSpec,genAmCNeu,genTimeFitDis;
         TString histname;
-        char nameChar[100];
+        TString histname2;
+        //char nameChar[100];
+        int binNum;
         double LowEdge;
         double HighEdge;
         double LowEdge4e;

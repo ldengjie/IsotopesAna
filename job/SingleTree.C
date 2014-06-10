@@ -17,6 +17,7 @@ void SingleTree::Begin(TTree * /*tree*/)
     IsoMode=IsoModeTmp;//Li8,C99,B12
     ifRed[1]="NoRed";
     ifRed[0]="";
+    binNum=80;
     for( int i=0 ; i<16 ; i++ )
     {
         T2lastMuon[i]=0.;
@@ -25,23 +26,43 @@ void SingleTree::Begin(TTree * /*tree*/)
     if( IsoMode=="B12" )
     {
         LowEdge=5.5;
+        //LowEdge=4.0;
         HighEdge=20.0;
         LowEdge4e=LowEdge;
         HighEdge4e=HighEdge;
+        //signalWinLow=0.002;
+        //signalWinHigh=0.06;
+        //offWinLow=0.502;
+        //offWinHigh=0.560;
         signalWinLow=0.002;
-        signalWinHigh=0.06;
+        signalWinHigh=0.082;
         offWinLow=0.502;
-        offWinHigh=0.560;
+        offWinHigh=0.583;
     }else if( IsoMode=="Li8" )
     {
-        LowEdge=14.0;//for N12 time fit,that for Li8 has been done while B12.
+        //LowEdge=5.5;
+        LowEdge=4.0;
         HighEdge=20.0;
-        LowEdge4e=5.5;
-        HighEdge4e=20.0;
+        LowEdge4e=LowEdge;
+        HighEdge4e=HighEdge;
         signalWinLow=0.6;
         signalWinHigh=4.0;
         offWinLow=10.6;
         offWinHigh=14.0;
+    }else if( IsoMode=="N12" )
+    {
+        LowEdge=14.0;//for N12 time fit,that for Li8 has been done while B12.
+        HighEdge=20.0;
+        LowEdge4e=LowEdge;
+        HighEdge4e=HighEdge;
+        //signalWinLow=0.002;
+        //signalWinHigh=0.06;
+        //offWinLow=0.502;
+        //offWinHigh=0.560;
+        signalWinLow=0.002;
+        signalWinHigh=0.082;
+        offWinLow=0.502;
+        offWinHigh=0.583;
     } else if( IsoMode=="C99" )
     {
         LowEdge=12.0;
@@ -90,27 +111,47 @@ void SingleTree::Begin(TTree * /*tree*/)
         for( int i=0 ; i<5 ; i++ )
         {
             histname=Form("time2lastshowermuon%i_%0.1f_%0.1f",i+1,LowEdge,HighEdge);
+            histname2=histname+";*";
+            gDirectory->Delete(histname2);
             time2lastshowermuon[i]=new TH1F(histname,"time2lastshowermuon",99999,0.001,100);
             histname=Form("time2lastshowermuonNoRed%i_%0.1f_%0.1f",i+1,LowEdge,HighEdge);
+            histname2=histname+";*";
+            gDirectory->Delete(histname2);
             time2lastshowermuonNoRed[i]=new TH1F(histname,"time2lastshowermuon",99999,0.001,100);
         }
 
         histname=Form("time2Allmuon_%0.1f_%0.1f",LowEdge,HighEdge);
+            histname2=histname+";*";
+            gDirectory->Delete(histname2);
         time2Allmuon[0]=new TH1F(histname,"time2Allmuon",99999,0.001,100);
         histname=Form("time2AllmuonNoRed_%0.1f_%0.1f",LowEdge,HighEdge);
+            histname2=histname+";*";
+            gDirectory->Delete(histname2);
         time2Allmuon[1]=new TH1F(histname,"time2Allmuon",99999,0.001,100);
 
         for( int i=0 ; i<5 ; i++ )
         {
-            time2lastmuon[i]=new TTree(Form("slice%i_%0.1f_%0.1f",i+1,LowEdge,HighEdge),"time2lastmuon");
-            time2lastmuonNoRed[i]=new TTree(Form("sliceNoRed%i_%0.1f_%0.1f",i+1,LowEdge,HighEdge),"time2lastmuon NoRed");
+            histname=Form("slice%i_%0.1f_%0.1f",i+1,LowEdge,HighEdge);
+            histname2=histname+";*";
+            gDirectory->Delete(histname2);
+            time2lastmuon[i]=new TTree(histname,"time2lastmuon");
+            histname=Form("sliceNoRed%i_%0.1f_%0.1f",i+1,LowEdge,HighEdge);
+            histname2=histname+";*";
+            gDirectory->Delete(histname2);
+            time2lastmuonNoRed[i]=new TTree(histname,"time2lastmuon NoRed");
 
             time2lastmuon[i]->Branch("xt",&T2lastMuon[4+i],"xt/F");
             time2lastmuonNoRed[i]->Branch("xt",&T2lastMuon[10+i],"xt/F");
         }
-        time2lastmuon[5]=new TTree(Form("slice6_%0.1f_%0.1f",LowEdge,HighEdge),"time2lastmuon");
+            histname=Form("slice6_%0.1f_%0.1f",LowEdge,HighEdge);
+            histname2=histname+";*";
+            gDirectory->Delete(histname2);
+        time2lastmuon[5]=new TTree(histname,"time2lastmuon");
         time2lastmuon[5]->Branch("xt",&minT2allmuon[0],"xt/F");
-        time2lastmuonNoRed[5]=new TTree(Form("sliceNoRed6_%0.1f_%0.1f",LowEdge,HighEdge),"time2lastmuon NoRed");
+            histname=Form("sliceNoRed6_%0.1f_%0.1f",LowEdge,HighEdge);
+            histname2=histname+";*";
+            gDirectory->Delete(histname2);
+        time2lastmuonNoRed[5]=new TTree(histname,"time2lastmuon NoRed");
         time2lastmuonNoRed[5]->Branch("xt",&minT2allmuon[1],"xt/F");
     }
     if( genAmCNeu )
@@ -118,10 +159,16 @@ void SingleTree::Begin(TTree * /*tree*/)
         for( int i=0 ; i<4 ; i++ )
         {
             histname=Form("singleUpperAD%i_%0.1f_%0.1f",i+1,LowEdge,HighEdge);
+            histname2=histname+";*";
+            gDirectory->Delete(histname2);
             singleUpper[i]=new TH1F(histname,"single upper",400,0,20);
             histname=Form("singleLowerAD%i_%0.1f_%0.1f",i+1,LowEdge,HighEdge);
+            histname2=histname+";*";
+            gDirectory->Delete(histname2);
             singleLower[i]=new TH1F(histname,"single lower",400,0,20);
             histname=Form("AmCSpecAD%i_%0.1f_%0.1f",i+1,LowEdge,HighEdge);
+            histname2=histname+";*";
+            gDirectory->Delete(histname2);
             AmCSpec[i]=new TH1F(histname,"AmC spectrum",400,0,20);
         }
 
@@ -136,37 +183,57 @@ void SingleTree::Begin(TTree * /*tree*/)
                 offTheoNum[j][i]=1;
                 offRealNum[j][i]=1;
                 //std::cout<<"6.1 "<<endl;
-                sprintf(nameChar,"%ssignalEnergy%sSlice%i_%0.1f_%0.1f",IsoMode.c_str(),ifRed[j].c_str(),i+1,LowEdge,HighEdge);
-                signalWin[j][i]=new TH1F(nameChar,nameChar,80,0,20);
+                histname=Form("%ssignalEnergy%sSlice%i_%0.1f_%0.1f",IsoMode.c_str(),ifRed[j].c_str(),i+1,LowEdge,HighEdge);
+            histname2=histname+";*";
+            gDirectory->Delete(histname2);
+                signalWin[j][i]=new TH1F(histname,histname,binNum,0,20);
                 //std::cout<<"6.2 "<<endl;
-                sprintf(nameChar,"%soffEnergy%sSlice%i_%0.1f_%0.1f",IsoMode.c_str(),ifRed[j].c_str(),i+1,LowEdge,HighEdge);
-                offWin[j][i]=new TH1F(nameChar,nameChar,80,0,20);
+                histname=Form("%soffEnergy%sSlice%i_%0.1f_%0.1f",IsoMode.c_str(),ifRed[j].c_str(),i+1,LowEdge,HighEdge);
+            histname2=histname+";*";
+            gDirectory->Delete(histname2);
+                offWin[j][i]=new TH1F(histname,histname,binNum,0,20);
                 //std::cout<<"6.3 "<<endl;
-                sprintf(nameChar,"%ssignalXY%sSlice%i_%0.1f_%0.1f",IsoMode.c_str(),ifRed[j].c_str(),i+1,LowEdge,HighEdge);
+                histname=Form("%ssignalXY%sSlice%i_%0.1f_%0.1f",IsoMode.c_str(),ifRed[j].c_str(),i+1,LowEdge,HighEdge);
+            histname2=histname+";*";
+            gDirectory->Delete(histname2);
                 //std::cout<<"6.31 "<<endl;
-                std::cout<<"nameChar  : "<<nameChar<<endl;
-                signalWinXY[j][i]=new TH2F(nameChar,nameChar,600,-3000.,3000.,600,-3000.,3000.);
+                std::cout<<"histname  : "<<histname<<endl;
+                signalWinXY[j][i]=new TH2F(histname,histname,600,-3000.,3000.,600,-3000.,3000.);
                 //std::cout<<"6.4 "<<endl;
-                sprintf(nameChar,"%soffXY%sSlice%i_%0.1f_%0.1f",IsoMode.c_str(),ifRed[j].c_str(),i+1,LowEdge,HighEdge);
-                offWinXY[j][i]=new TH2F(nameChar,nameChar,600,-3000,3000,600,-3000,3000);
+                histname=Form("%soffXY%sSlice%i_%0.1f_%0.1f",IsoMode.c_str(),ifRed[j].c_str(),i+1,LowEdge,HighEdge);
+            histname2=histname+";*";
+            gDirectory->Delete(histname2);
+                offWinXY[j][i]=new TH2F(histname,histname,600,-3000,3000,600,-3000,3000);
                 //std::cout<<"6.5 "<<endl;
-                sprintf(nameChar,"%ssignalRZ%sSlice%i_%0.1f_%0.1f",IsoMode.c_str(),ifRed[j].c_str(),i+1,LowEdge,HighEdge);
-                signalWinRZ[j][i]=new TH2F(nameChar,nameChar,300,0,3000,600,-3000,3000);
+                histname=Form("%ssignalRZ%sSlice%i_%0.1f_%0.1f",IsoMode.c_str(),ifRed[j].c_str(),i+1,LowEdge,HighEdge);
+            histname2=histname+";*";
+            gDirectory->Delete(histname2);
+                signalWinRZ[j][i]=new TH2F(histname,histname,300,0,3000,600,-3000,3000);
                 //std::cout<<"6.6 "<<endl;
-                sprintf(nameChar,"%soffRZ%sSlice%i_%0.1f_%0.1f",IsoMode.c_str(),ifRed[j].c_str(),i+1,LowEdge,HighEdge);
-                offWinRZ[j][i]=new TH2F(nameChar,nameChar,300,0,3000,600,-3000,3000);
+                histname=Form("%soffRZ%sSlice%i_%0.1f_%0.1f",IsoMode.c_str(),ifRed[j].c_str(),i+1,LowEdge,HighEdge);
+            histname2=histname+";*";
+            gDirectory->Delete(histname2);
+                offWinRZ[j][i]=new TH2F(histname,histname,300,0,3000,600,-3000,3000);
                 //std::cout<<"6.7 "<<endl;
-                sprintf(nameChar,"%ssingleSpecVsTime%sSlice%i_%0.1f_%0.1f",IsoMode.c_str(),ifRed[j].c_str(),i+1,LowEdge,HighEdge);
-                singleSpecVsTime[j][i]=new TH2F(nameChar,nameChar,100000,0,100,400,0,20);
+                histname=Form("%ssingleSpecVsTime%sSlice%i_%0.1f_%0.1f",IsoMode.c_str(),ifRed[j].c_str(),i+1,LowEdge,HighEdge);
+            histname2=histname+";*";
+            gDirectory->Delete(histname2);
+                singleSpecVsTime[j][i]=new TH2F(histname,histname,100000,0,100,400,0,20);
                 //std::cout<<"6.8 "<<endl;
                 //std::cout<<" "<<endl;
             }
-            //sprintf(nameChar,"%ssignalWindow2AllMuon%s_%0.1f_%0.1f",IsoMode.c_str(),ifRed[j].c_str(),LowEdge,HighEdge);
-            //signalWin[j][5]=new TH1F(nameChar,nameChar,80,0,20);
-            //sprintf(nameChar,"%soffWindow2AllMuon%s_%0.1f_%0.1f",IsoMode.c_str(),ifRed[j].c_str(),LowEdge,HighEdge);
-            //offWin[j][5]=new TH1F(nameChar,nameChar,80,0,20);
-            //sprintf(nameChar,"%ssingleSpecVsTimeAllMuon%s_%0.1f_%0.1f",IsoMode.c_str(),ifRed[j].c_str(),LowEdge,HighEdge);
-            //singleSpecVsTime[j][5]=new TH2F(nameChar,nameChar,1000000,0,1000,80,0,20);
+            //histname=Form("%ssignalWindow2AllMuon%s_%0.1f_%0.1f",IsoMode.c_str(),ifRed[j].c_str(),LowEdge,HighEdge);
+            //histname2=histname+";*";
+            //gDirectory->Delete(histname2);
+            //signalWin[j][5]=new TH1F(histname,histname,binNum,0,20);
+            //histname=Form("%soffWindow2AllMuon%s_%0.1f_%0.1f",IsoMode.c_str(),ifRed[j].c_str(),LowEdge,HighEdge);
+                //histname2=histname+";*";
+                //gDirectory->Delete(histname2);
+            //offWin[j][5]=new TH1F(histname,histname,binNum,0,20);
+            //histname=Form("%ssingleSpecVsTimeAllMuon%s_%0.1f_%0.1f",IsoMode.c_str(),ifRed[j].c_str(),LowEdge,HighEdge);
+                //histname2=histname+";*";
+                //gDirectory->Delete(histname2);
+            //singleSpecVsTime[j][5]=new TH2F(histname,histname,1000000,0,1000,binNum,0,20);
         }
     }
     std::cout<<"finished Begin() "<<endl;
@@ -187,9 +254,19 @@ Bool_t SingleTree::Process(Long64_t entry)
     //std::cout<<entry<<endl;
     //}
     //isotopes spectrum
+    if(!(z<900&&!(x>-1700&&x<-1200&&y>-1500&&y<-900&&z>-900&&x<-500)) )
+    {
+        return true;
+    }
     if( genIsoSpec )
     {
         if( energy>LowEdge4e&&energy<HighEdge4e )
+        //if( energy>LowEdge4e&&energy<HighEdge4e &&z<900)
+        //if( energy>LowEdge4e&&energy<HighEdge4e&&!(x>-1700&&x<-1200&&y>-1500&&y<-900&&z>-900&&x<-500)&&z<0)
+        //if( energy>LowEdge4e&&energy<HighEdge4e&&!(x>-1700&&x<-1200&&y>-1500&&y<-900&&z>-900&&x<-500)&&z<900)
+        //if( energy>7&&energy<9&&!(x>-1700&&x<-1200&&y>-1500&&y<-900&&z>-900&&x<-500)&&z<900)
+        //if( energy>7&&energy<9&&!(x>-1700&&x<-1200&&y>-1500&&y<-900&&z>-900&&x<-500))
+        //if((x>-1700&&x<-1200&&y>-1500&&y<-900&&z>-900&&x<-500))
         {
             for( int i=0 ; i<2 ; i++ )
             {
@@ -259,6 +336,7 @@ Bool_t SingleTree::Process(Long64_t entry)
     }
     if( genTimeFitDis )
     {
+
         for( int j=0 ; j<5 ; j++ )
         {
             time2lastshowermuon[j]->Fill(T2lastMuon[j+4]);
@@ -315,17 +393,25 @@ void SingleTree::Terminate()
                 int offWinNum=(int)((offWinHigh-offWinLow)/(signalWinHigh-signalWinLow));
                 //std::cout<<"offWinNum  : "<<offWinNum<<endl;
                 double offMuonRate=h->Integral(h->FindBin(offWinLow),h->FindBin(9999));
+                double offMuonRateH=h->Integral(h->FindBin(offWinHigh),h->FindBin(9999));
                 //std::cout<<"offMuonRate  : "<<offMuonRate<<endl;
                 double offFrac=0.;
+                double offFracH=0.;
                 for( int k=0 ; k<offWinNum ; k++ )
                 {
                     double offMuonRateTmp=h->Integral(h->FindBin(offWinLow+(signalWinHigh-signalWinLow)*k),h->FindBin(9999));
+                    double offMuonRateTmpH=h->Integral(h->FindBin(offWinHigh+(signalWinHigh-signalWinLow)*k),h->FindBin(9999));
                     //std::cout<<"offMuonRateTmp  : "<<offMuonRateTmp<<endl;
                     offFrac+=offMuonRateTmp/offMuonRate;
+                    offFracH+=offMuonRateTmpH/offMuonRateH;
                 }
                 double signalMuonRate=h->Integral(h->FindBin(signalWinLow),h->FindBin(9999));
+                double signalMuonRateH=h->Integral(h->FindBin(signalWinHigh),h->FindBin(9999));
                 //std::cout<<" signalMuonRate : "<<signalMuonRate<<endl;
-                //std::cout<<"signalFrac  : "<<signalMuonRate/offMuonRate<<endl;
+                std::cout<<"signalFrac  : "<<signalMuonRate/offMuonRate<<endl;
+                std::cout<<"signalFracH  : "<<signalMuonRateH/offMuonRateH<<endl;
+                cout<<"offFrac  : "<<offFrac<<endl;
+                cout<<"offFracH  : "<<offFracH<<endl;
                 histname=Form("%s %sSlice%i signalMuonRate:%10.0f offMuonRate:%10.0f signal/off:%5.5f offTheo/Real:%5.5f frac:%.5f",IsoMode.c_str(),ifRed[j].c_str(),i+1,signalMuonRate,offMuonRate,signalMuonRate/offMuonRate,(double)(offTheoNum[j][i])/offRealNum[j][i],offFrac);
                 std::cout<<histname<<endl;
                 delete h;
@@ -348,8 +434,10 @@ void SingleTree::Terminate()
                 //std::cout<<"1.6 "<<endl;
                 //offWin[j][i]->Draw("same");
                 histname=Form("%sSpec%sSlice%i_%0.1f_%0.1f",IsoMode.c_str(),ifRed[j].c_str(),i+1,LowEdge4e,HighEdge4e);
+            histname2=histname+";*";
+            gDirectory->Delete(histname2);
                 //std::cout<<"2 "<<endl;
-                isoSpec[j][i]=new TH1F(histname,histname,80,0,20);
+                isoSpec[j][i]=new TH1F(histname,histname,binNum,0,20);
                 //std::cout<<"3 "<<endl;
                 isoSpec[j][i]->Sumw2();
                 //isoSpec[j][i]->Add(signalWin[j][i],offWin[j][i],1,-0.5);
@@ -456,8 +544,8 @@ void SingleTree::Terminate()
         time2Allmuon[1]->Write();
         for( int j=0 ; j<6 ; j++ )
         {
-            time2lastmuon[j]->Write();
-            time2lastmuonNoRed[j]->Write();
+            //time2lastmuon[j]->Write();
+            //time2lastmuonNoRed[j]->Write();
         }
 
     }

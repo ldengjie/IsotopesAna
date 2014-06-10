@@ -47,10 +47,10 @@ int anaTree(int siteNum,string dataVer)
     std::cout<<"lidj total single number  : "<<chain.GetEntries()<<endl;
 
     chain.Process("SingleTree",siteAndDataVer.c_str());
-    siteAndDataVer=site+dataVer+"Li8";
-    chain.Process("SingleTree",siteAndDataVer.c_str());
-    siteAndDataVer=site+dataVer+"C99";//C9
-    chain.Process("SingleTree",siteAndDataVer.c_str());
+    //siteAndDataVer=site+dataVer+"Li8";
+    //chain.Process("SingleTree",siteAndDataVer.c_str());
+    //siteAndDataVer=site+dataVer+"C99";//C9
+    //chain.Process("SingleTree",siteAndDataVer.c_str());
     siteAndDataVer=site+dataVer+"N12";//C9
     chain.Process("SingleTree",siteAndDataVer.c_str());
 	return 0;
