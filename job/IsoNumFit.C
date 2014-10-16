@@ -454,7 +454,7 @@ void genData(fitInf* fitinf, string dataVer,string site)
             for( int j=1 ; j<pdfZeroBin; j++ )
             {
                 hs[i]->SetBinContent(j,hs0[i]->GetBinContent(hemin+j-1));
-                //hs[i]->SetBinError(j,hs0[i]->GetBinError(hemin+j-1));
+                hs[i]->SetBinError(j,hs0[i]->GetBinError(hemin+j-1));
             }
             fitinf->specNdf=hs[i]->GetNbinsX()-fitinf->specComMap.size()-2;
             //for( int j=hs[i]->FindBin(fitinf->specElow) ; j<(hs[i]->FindBin(fitinf->specEhigh)-hs[i]->FindBin(fitinf->specElow)) ; j++ )
@@ -950,6 +950,7 @@ int doFit(int siteNum,string dataVer,string fitMode,bool doSimFit,double fitLowR
     }
     cout<<" "<<endl;
     std::cout<<"      |       Total number      |     Rate(/day/AD) "<<endl;
+    double volumeEff=29./40.;
     for( int k=0;k<(int)(fit[fitMode]->timeComMap.size());k++) 
     {
         //double totalTimeCoe=1.;
@@ -960,13 +961,13 @@ int doFit(int siteNum,string dataVer,string fitMode,bool doSimFit,double fitLowR
             //}
         //cout<<"tNum  : "<<fit[fitMode]->timeComMap[fit[fitMode]->timeCom[k]]->tNum<<endl;
         //cout<<"tNumErr  : "<<sqrt(fit[fitMode]->timeComMap[fit[fitMode]->timeCom[k]]->tNumErr)<<endl;
-        fit[fitMode]->timeComMap[fit[fitMode]->timeCom[k]]->rate=fit[fitMode]->timeComMap[fit[fitMode]->timeCom[k]]->tNum/(fit[fitMode]->liveTime/(24*3600))/(29./40.);
-        fit[fitMode]->timeComMap[fit[fitMode]->timeCom[k]]->rateErr=sqrt(fit[fitMode]->timeComMap[fit[fitMode]->timeCom[k]]->tNumErr)/(fit[fitMode]->liveTime/(24*3600))/(29./40.);
+        fit[fitMode]->timeComMap[fit[fitMode]->timeCom[k]]->rate=fit[fitMode]->timeComMap[fit[fitMode]->timeCom[k]]->tNum/(fit[fitMode]->liveTime/(24*3600))/volumeEff;
+        fit[fitMode]->timeComMap[fit[fitMode]->timeCom[k]]->rateErr=sqrt(fit[fitMode]->timeComMap[fit[fitMode]->timeCom[k]]->tNumErr)/(fit[fitMode]->liveTime/(24*3600))/volumeEff;
         double numFit=fit[fitMode]->timeComMap[fit[fitMode]->timeCom[k]]->tNum;
         double numErrFit=sqrt(numFit);
-        double rateFit=numFit/(fit[fitMode]->liveTime/(24*3600))/(29./40.);
-        double rateErrFit=numErrFit/(fit[fitMode]->liveTime/(24*3600))/(29./40.);
-        //std::cout<<Form(" %-3s  | %10.1f +- %8.1f  | %7.1f +- %7.1f",fit[fitMode]->timeComMap[fit[fitMode]->timeCom[k]]->isoName.c_str(),fit[fitMode]->timeComMap[fit[fitMode]->timeCom[k]]->tNum/(29./40.),sqrt(fit[fitMode]->timeComMap[fit[fitMode]->timeCom[k]]->tNumErr)/(29./40.),fit[fitMode]->timeComMap[fit[fitMode]->timeCom[k]]->rate,fit[fitMode]->timeComMap[fit[fitMode]->timeCom[k]]->rateErr)<<endl;
+        double rateFit=numFit/(fit[fitMode]->liveTime/(24*3600))/volumeEff;
+        double rateErrFit=numErrFit/(fit[fitMode]->liveTime/(24*3600))/volumeEff;
+        //std::cout<<Form(" %-3s  | %10.1f +- %8.1f  | %7.1f +- %7.1f",fit[fitMode]->timeComMap[fit[fitMode]->timeCom[k]]->isoName.c_str(),fit[fitMode]->timeComMap[fit[fitMode]->timeCom[k]]->tNum/volumeEff,sqrt(fit[fitMode]->timeComMap[fit[fitMode]->timeCom[k]]->tNumErr)/volumeEff,fit[fitMode]->timeComMap[fit[fitMode]->timeCom[k]]->rate,fit[fitMode]->timeComMap[fit[fitMode]->timeCom[k]]->rateErr)<<endl;
         std::cout<<Form(" %-3s  | %10.1f +- %8.1f  | %7.1f +- %7.1f",fit[fitMode]->timeComMap[fit[fitMode]->timeCom[k]]->isoName.c_str(),numFit,numErrFit,rateFit,rateErrFit)<<endl;
     }
 
@@ -976,10 +977,10 @@ int doFit(int siteNum,string dataVer,string fitMode,bool doSimFit,double fitLowR
     {
         double numFit=fit[fitMode]->timeComMap[fit[fitMode]->timeCom[k]]->tNum;
         double numErrFit=sqrt(numFit);
-        double yield=numFit/(0.860*258*fit[fitMode]->muonRate[5]*fit[fitMode]->daqTime)/(29./40.);
-        double yieldErr=numErrFit/(0.860*258*fit[fitMode]->muonRate[5]*fit[fitMode]->daqTime)/(29./40.);
-        double ratePerT=numFit/(fit[fitMode]->liveTime/(24*3600))/41./(29./40.);
-        double ratePerTErr=numErrFit/(fit[fitMode]->liveTime/(24*3600))/41./(29./40.);
+        double yield=numFit/(0.860*258*fit[fitMode]->muonRate[5]*fit[fitMode]->daqTime)/volumeEff;
+        double yieldErr=numErrFit/(0.860*258*fit[fitMode]->muonRate[5]*fit[fitMode]->daqTime)/volumeEff;
+        double ratePerT=numFit/(fit[fitMode]->liveTime/(24*3600))/41./volumeEff;
+        double ratePerTErr=numErrFit/(fit[fitMode]->liveTime/(24*3600))/41./volumeEff;
         std::cout<<Form(" %-3s  | %10.2f +- %8.2f  | %7.2f +- %7.2f",fit[fitMode]->timeComMap[fit[fitMode]->timeCom[k]]->isoName.c_str(),yield*1.e7,yieldErr*1.e7,ratePerT,ratePerTErr)<<endl;
     }
     cout<<" "<<endl;

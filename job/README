@@ -1,5 +1,7 @@
 how to use this script?
 
+WARNING: 'source ~/.thisroot.sh'!!! no use 'sn'
+
 GenIsoSpec.C 
     #run in ROOT
         1 root -l
@@ -15,7 +17,7 @@ SingleTree.C  SingleTree.h
     #above two programs all need this file's *.so,I can't make this file into .so separatly,so you should run 'GenIsoSpec.C',then you can run 'GenIsoSpec.main.C'
 
 IsoNumFit.C
-    #multiplt slices
+    #multiplt slices ? simultaneous fit?
         1 gcmR IsoNumFit
         2 ./IsoNumFit P14A 2 C9 0 0 50 // dataVer, siteNum=0, FitMode="B12", doSimFit=1, FitLowRange, FitHighRange
         3 submit to server. the job scripts are job/multiJob/*.csh ,you can submit them to server by 'source multi_submit.sh',or 'source multi_submit_64.sh'--dyb64q and 'source multi_submit_s.sh'--dybshortq
