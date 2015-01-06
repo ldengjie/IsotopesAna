@@ -28,10 +28,10 @@ class SingleTree : public TSelector {
         TString histname2;
         //char nameChar[100];
         int binNum;
-        double LowEdge;
-        double HighEdge;
-        double LowEdge4e;
-        double HighEdge4e;
+        float LowEdge;
+        float HighEdge;
+        float LowEdge4e;
+        float HighEdge4e;
         double signalWinLow;
         double signalWinHigh;
         double offWinLow;
@@ -46,7 +46,6 @@ class SingleTree : public TSelector {
         TH1F* offWin[2][6];
         int offTheoNum[2][6];
         int offRealNum[2][6];
-        //double offCoe[2][6];
         bool isRealOff;
         TH2F* signalWinXY[2][6];
         TH2F* offWinXY[2][6];
@@ -62,23 +61,33 @@ class SingleTree : public TSelector {
         TH1F* time2lastshowermuon[5];
         TTree* time2lastmuon[7];
         TTree* time2lastmuonNoRed[6];
-        Float_t minT2allmuon[2];
-        //double slicetime[6];
-        //double slicetimeNoRed[6];
+        double minT2allmuon[2];
+        double minT2allmuonI[3];
         // Declaration of leaf types
         Float_t         energy;
         Float_t         x;
         Float_t         y;
         Float_t         z;
+        double triggerTime;
         Int_t           det;
-        Float_t         t2lastshowermuon;
-        Float_t         T2lastMuon[16];
+        double t2lastshowermuon;
+        double T2lastMuon[52];
 
+        TH1F* IsignalWin[3][7];
+        TH1F* IoffWin[3][7];
+        TH1F* IisoSpec[3][7];
+        TH1F* Itime2lastshowermuon[3][7];
+            double nextMuonTriggetime[3][6];
+            double preMuonTriggetime[3][6];
+            int totalEntries;
+            double presentTriggerTime;
+            double presentMuonTriggetime[3];
         // List of branches
         TBranch        *b_energy;   //!
         TBranch        *b_x;   //!
         TBranch        *b_y;   //!
         TBranch        *b_z;   //!
+        TBranch        *b_triggerTime;   //!
         TBranch        *b_det;   //!
         TBranch        *b_t2lastshowermuon;   //!
         TBranch        *b_T2lastMuon;   //!
@@ -124,6 +133,7 @@ void SingleTree::Init(TTree *tree)
     fChain->SetBranchAddress("x", &x, &b_x);
     fChain->SetBranchAddress("y", &y, &b_y);
     fChain->SetBranchAddress("z", &z, &b_z);
+    fChain->SetBranchAddress("triggerTime", &triggerTime, &b_triggerTime);
     fChain->SetBranchAddress("det", &det, &b_det);
     fChain->SetBranchAddress("t2lastshowermuon", &t2lastshowermuon, &b_t2lastshowermuon);
     fChain->SetBranchAddress("T2lastMuon", &T2lastMuon, &b_T2lastMuon);

@@ -10,6 +10,9 @@ void SingleTree::Begin(TTree * /*tree*/)
 {
     TString option = GetOption();
     TString IsoModeTmp=option(7,3);
+    TString evtNumStr=option(10,(option.Sizeof()-10));
+    totalEntries=evtNumStr.Atoi();
+    cout<<"totalEntries  : "<<totalEntries<<endl;
     genIsoSpec=1;
     genAmCNeu=0;
     genTimeFitDis=1;
@@ -18,7 +21,7 @@ void SingleTree::Begin(TTree * /*tree*/)
     ifRed[1]="NoRed";
     ifRed[0]="";
     binNum=80;
-    for( int i=0 ; i<16 ; i++ )
+    for( int i=0 ; i<52 ; i++ )
     {
         T2lastMuon[i]=0.;
     }
@@ -35,9 +38,9 @@ void SingleTree::Begin(TTree * /*tree*/)
         //offWinLow=0.502;
         //offWinHigh=0.560;
         signalWinLow=0.002;
-        signalWinHigh=0.082;
-        offWinLow=0.502;
-        offWinHigh=0.583;
+        signalWinHigh=0.100;
+        offWinLow=-0.100;
+        offWinHigh=-0.002;
     }else if( IsoMode=="Li8" )
     {
         //LowEdge=5.5;
@@ -106,8 +109,36 @@ void SingleTree::Begin(TTree * /*tree*/)
     option+=".root";
     option=dataVer+"/"+option;
     file = new TFile(option,"update");
+
+    //for( int k=0 ; k<3 ; k++ )
+    //{
+    //presentMuonTriggetime[k]=0.;
+    //for( int i=0 ; i<6 ; i++ )
+    //{
+    //nextMuonTriggetime[k][i]=0.;
+    //preMuonTriggetime[k][i]=0.;
+    //}
+    //
+    //}
+            
     if( genTimeFitDis )
     {
+        //histogram - binned data for MML or Chi2
+        for( int j=0 ; j<3 ; j++ )
+        {
+            for( int i=0 ; i<6 ; i++ )
+            {
+                histname=Form("I%dtime2lastshowermuon%i_%0.1f_%0.1f",j+1,i+1,LowEdge,HighEdge);
+                histname2=histname+";*";
+                gDirectory->Delete(histname2);
+                Itime2lastshowermuon[j][i]=new TH1F(histname,"Itime2lastshowermuon",99999,0.001,100);
+            }
+                histname=Form("I%dtime2lastshowermuon123_%0.1f_%0.1f",j+1,LowEdge,HighEdge);
+                histname2=histname+";*";
+                gDirectory->Delete(histname2);
+                Itime2lastshowermuon[j][6]=new TH1F(histname,"Itime2lastshowermuon",99999,0.001,100);
+
+        }
         for( int i=0 ; i<5 ; i++ )
         {
             histname=Form("time2lastshowermuon%i_%0.1f_%0.1f",i+1,LowEdge,HighEdge);
@@ -121,14 +152,15 @@ void SingleTree::Begin(TTree * /*tree*/)
         }
 
         histname=Form("time2Allmuon_%0.1f_%0.1f",LowEdge,HighEdge);
-            histname2=histname+";*";
-            gDirectory->Delete(histname2);
+        histname2=histname+";*";
+        gDirectory->Delete(histname2);
         time2Allmuon[0]=new TH1F(histname,"time2Allmuon",99999,0.001,100);
         histname=Form("time2AllmuonNoRed_%0.1f_%0.1f",LowEdge,HighEdge);
-            histname2=histname+";*";
-            gDirectory->Delete(histname2);
+        histname2=histname+";*";
+        gDirectory->Delete(histname2);
         time2Allmuon[1]=new TH1F(histname,"time2Allmuon",99999,0.001,100);
 
+        //tree - unbinned data for MML
         for( int i=0 ; i<5 ; i++ )
         {
             histname=Form("slice%i_%0.1f_%0.1f",i+1,LowEdge,HighEdge);
@@ -140,19 +172,19 @@ void SingleTree::Begin(TTree * /*tree*/)
             gDirectory->Delete(histname2);
             time2lastmuonNoRed[i]=new TTree(histname,"time2lastmuon NoRed");
 
-            time2lastmuon[i]->Branch("xt",&T2lastMuon[4+i],"xt/F");
-            time2lastmuonNoRed[i]->Branch("xt",&T2lastMuon[10+i],"xt/F");
+            time2lastmuon[i]->Branch("xt",&T2lastMuon[4+i],"xt/D");
+            time2lastmuonNoRed[i]->Branch("xt",&T2lastMuon[10+i],"xt/D");
         }
-            histname=Form("slice6_%0.1f_%0.1f",LowEdge,HighEdge);
-            histname2=histname+";*";
-            gDirectory->Delete(histname2);
+        histname=Form("slice6_%0.1f_%0.1f",LowEdge,HighEdge);
+        histname2=histname+";*";
+        gDirectory->Delete(histname2);
         time2lastmuon[5]=new TTree(histname,"time2lastmuon");
-        time2lastmuon[5]->Branch("xt",&minT2allmuon[0],"xt/F");
-            histname=Form("sliceNoRed6_%0.1f_%0.1f",LowEdge,HighEdge);
-            histname2=histname+";*";
-            gDirectory->Delete(histname2);
+        time2lastmuon[5]->Branch("xt",&minT2allmuon[0],"xt/D");
+        histname=Form("sliceNoRed6_%0.1f_%0.1f",LowEdge,HighEdge);
+        histname2=histname+";*";
+        gDirectory->Delete(histname2);
         time2lastmuonNoRed[5]=new TTree(histname,"time2lastmuon NoRed");
-        time2lastmuonNoRed[5]->Branch("xt",&minT2allmuon[1],"xt/F");
+        time2lastmuonNoRed[5]->Branch("xt",&minT2allmuon[1],"xt/D");
     }
     if( genAmCNeu )
     {
@@ -176,64 +208,77 @@ void SingleTree::Begin(TTree * /*tree*/)
 
     if( genIsoSpec )
     {
+        //energy spectrum after muon that meet 100 200 300 ms time isolation cut
+        for( int j=0 ; j<3 ; j++ )
+        {
+            for( int i=0 ; i<6 ; i++ )
+            {
+
+                histname=Form("%sI%dsignalEnergySlice%i_%0.1f_%0.1f",IsoMode.c_str(),j+1,i+1,LowEdge,HighEdge);
+                histname2=histname+";*";
+                gDirectory->Delete(histname2);
+                IsignalWin[j][i]=new TH1F(histname,histname,binNum,0,20);
+                histname=Form("%sI%doffEnergySlice%i_%0.1f_%0.1f",IsoMode.c_str(),j+1,i+1,LowEdge,HighEdge);
+                histname2=histname+";*";
+                gDirectory->Delete(histname2);
+                IoffWin[j][i]=new TH1F(histname,histname,binNum,0,20);
+                histname=Form("%sI%dSpecSlice%i_%0.1f_%0.1f",IsoMode.c_str(),j+1,i+1,LowEdge4e,HighEdge4e);
+                histname2=histname+";*";
+                gDirectory->Delete(histname2);
+                IisoSpec[j][i]=new TH1F(histname,histname,binNum,0,20);
+            }
+                histname=Form("%sI%dsignalEnergySlice123_%0.1f_%0.1f",IsoMode.c_str(),j+1,LowEdge,HighEdge);
+                histname2=histname+";*";
+                gDirectory->Delete(histname2);
+                IsignalWin[j][6]=new TH1F(histname,histname,binNum,0,20);
+                histname=Form("%sI%doffEnergySlice123_%0.1f_%0.1f",IsoMode.c_str(),j+1,LowEdge,HighEdge);
+                histname2=histname+";*";
+                gDirectory->Delete(histname2);
+                IoffWin[j][6]=new TH1F(histname,histname,binNum,0,20);
+                histname=Form("%sI%dSpecSlice123_%0.1f_%0.1f",IsoMode.c_str(),j+1,LowEdge4e,HighEdge4e);
+                histname2=histname+";*";
+                gDirectory->Delete(histname2);
+                IisoSpec[j][6]=new TH1F(histname,histname,binNum,0,20);
+
+        }
+
+        //energy spectrum / xy / rz /specVsTime  after muon w/o reduction cut ( there are neutrons after it).
         for( int j=0 ; j<2 ; j++ )
         {
             for( int i=0 ; i<6 ; i++ )
             {
                 offTheoNum[j][i]=1;
                 offRealNum[j][i]=1;
-                //std::cout<<"6.1 "<<endl;
                 histname=Form("%ssignalEnergy%sSlice%i_%0.1f_%0.1f",IsoMode.c_str(),ifRed[j].c_str(),i+1,LowEdge,HighEdge);
-            histname2=histname+";*";
-            gDirectory->Delete(histname2);
+                histname2=histname+";*";
+                gDirectory->Delete(histname2);
                 signalWin[j][i]=new TH1F(histname,histname,binNum,0,20);
-                //std::cout<<"6.2 "<<endl;
                 histname=Form("%soffEnergy%sSlice%i_%0.1f_%0.1f",IsoMode.c_str(),ifRed[j].c_str(),i+1,LowEdge,HighEdge);
-            histname2=histname+";*";
-            gDirectory->Delete(histname2);
+                histname2=histname+";*";
+                gDirectory->Delete(histname2);
                 offWin[j][i]=new TH1F(histname,histname,binNum,0,20);
-                //std::cout<<"6.3 "<<endl;
                 histname=Form("%ssignalXY%sSlice%i_%0.1f_%0.1f",IsoMode.c_str(),ifRed[j].c_str(),i+1,LowEdge,HighEdge);
-            histname2=histname+";*";
-            gDirectory->Delete(histname2);
-                //std::cout<<"6.31 "<<endl;
+                histname2=histname+";*";
+                gDirectory->Delete(histname2);
                 std::cout<<"histname  : "<<histname<<endl;
                 signalWinXY[j][i]=new TH2F(histname,histname,600,-3000.,3000.,600,-3000.,3000.);
-                //std::cout<<"6.4 "<<endl;
                 histname=Form("%soffXY%sSlice%i_%0.1f_%0.1f",IsoMode.c_str(),ifRed[j].c_str(),i+1,LowEdge,HighEdge);
-            histname2=histname+";*";
-            gDirectory->Delete(histname2);
+                histname2=histname+";*";
+                gDirectory->Delete(histname2);
                 offWinXY[j][i]=new TH2F(histname,histname,600,-3000,3000,600,-3000,3000);
-                //std::cout<<"6.5 "<<endl;
                 histname=Form("%ssignalRZ%sSlice%i_%0.1f_%0.1f",IsoMode.c_str(),ifRed[j].c_str(),i+1,LowEdge,HighEdge);
-            histname2=histname+";*";
-            gDirectory->Delete(histname2);
+                histname2=histname+";*";
+                gDirectory->Delete(histname2);
                 signalWinRZ[j][i]=new TH2F(histname,histname,300,0,3000,600,-3000,3000);
-                //std::cout<<"6.6 "<<endl;
                 histname=Form("%soffRZ%sSlice%i_%0.1f_%0.1f",IsoMode.c_str(),ifRed[j].c_str(),i+1,LowEdge,HighEdge);
-            histname2=histname+";*";
-            gDirectory->Delete(histname2);
+                histname2=histname+";*";
+                gDirectory->Delete(histname2);
                 offWinRZ[j][i]=new TH2F(histname,histname,300,0,3000,600,-3000,3000);
-                //std::cout<<"6.7 "<<endl;
                 histname=Form("%ssingleSpecVsTime%sSlice%i_%0.1f_%0.1f",IsoMode.c_str(),ifRed[j].c_str(),i+1,LowEdge,HighEdge);
-            histname2=histname+";*";
-            gDirectory->Delete(histname2);
+                histname2=histname+";*";
+                gDirectory->Delete(histname2);
                 singleSpecVsTime[j][i]=new TH2F(histname,histname,100000,0,100,400,0,20);
-                //std::cout<<"6.8 "<<endl;
-                //std::cout<<" "<<endl;
             }
-            //histname=Form("%ssignalWindow2AllMuon%s_%0.1f_%0.1f",IsoMode.c_str(),ifRed[j].c_str(),LowEdge,HighEdge);
-            //histname2=histname+";*";
-            //gDirectory->Delete(histname2);
-            //signalWin[j][5]=new TH1F(histname,histname,binNum,0,20);
-            //histname=Form("%soffWindow2AllMuon%s_%0.1f_%0.1f",IsoMode.c_str(),ifRed[j].c_str(),LowEdge,HighEdge);
-                //histname2=histname+";*";
-                //gDirectory->Delete(histname2);
-            //offWin[j][5]=new TH1F(histname,histname,binNum,0,20);
-            //histname=Form("%ssingleSpecVsTimeAllMuon%s_%0.1f_%0.1f",IsoMode.c_str(),ifRed[j].c_str(),LowEdge,HighEdge);
-                //histname2=histname+";*";
-                //gDirectory->Delete(histname2);
-            //singleSpecVsTime[j][5]=new TH2F(histname,histname,1000000,0,1000,binNum,0,20);
         }
     }
     std::cout<<"finished Begin() "<<endl;
@@ -249,39 +294,37 @@ void SingleTree::SlaveBegin(TTree * /*tree*/)
 Bool_t SingleTree::Process(Long64_t entry)
 {
     GetEntry(entry);
-    //if( entry%2000000==0 )
+    //if( entry%10000==0 )
     //{
     //std::cout<<entry<<endl;
     //}
-    //isotopes spectrum
+    
+    //cut all events from Z>=900;cut flahser that exists in P12E P13A  from this zone;
     if(!(z<900&&!(x>-1700&&x<-1200&&y>-1500&&y<-900&&z>-900&&x<-500)) )
     {
         return true;
     }
+
+    //isotopes spectrum
     if( genIsoSpec )
     {
-        if( energy>LowEdge4e&&energy<HighEdge4e )
-        //if( energy>LowEdge4e&&energy<HighEdge4e &&z<900)
-        //if( energy>LowEdge4e&&energy<HighEdge4e&&!(x>-1700&&x<-1200&&y>-1500&&y<-900&&z>-900&&x<-500)&&z<0)
-        //if( energy>LowEdge4e&&energy<HighEdge4e&&!(x>-1700&&x<-1200&&y>-1500&&y<-900&&z>-900&&x<-500)&&z<900)
-        //if( energy>7&&energy<9&&!(x>-1700&&x<-1200&&y>-1500&&y<-900&&z>-900&&x<-500)&&z<900)
-        //if( energy>7&&energy<9&&!(x>-1700&&x<-1200&&y>-1500&&y<-900&&z>-900&&x<-500))
-        //if((x>-1700&&x<-1200&&y>-1500&&y<-900&&z>-900&&x<-500))
+        if( energy>=LowEdge4e&&energy<=HighEdge4e )
         {
+            //for muon reduction cut
             for( int i=0 ; i<2 ; i++ )
             {
-                minT2allmuon[i]=1000.;
+                minT2allmuonI[i]=1000.;
                 for( int j=0 ; j<5 ; j++ )
                 {
-                    singleSpecVsTime[i][j]->Fill(T2lastMuon[j+4+6*i],energy);
-                    minT2allmuon[i]=minT2allmuon[i]<T2lastMuon[j+4+6*i]?minT2allmuon[i]:T2lastMuon[j+4+6*i];
-                    if( T2lastMuon[j+4+6*i]>signalWinLow &&T2lastMuon[j+4+6*i]<signalWinHigh )
+                    singleSpecVsTime[i][j]->Fill(T2lastMuon[j+16+6*i],energy);
+                    minT2allmuonI[i]=minT2allmuonI[i]<T2lastMuon[j+16+6*i]?minT2allmuonI[i]:T2lastMuon[j+16+6*i];
+                    if( T2lastMuon[j+16+6*i]>=signalWinLow &&T2lastMuon[j+16+6*i]<=signalWinHigh )
                     {
                         signalWinXY[i][j]->Fill(x,y);
                         signalWinRZ[i][j]->Fill(sqrt(x*x+y*y),z);
                         signalWin[i][j]->Fill(energy);
                     }
-                    if( T2lastMuon[j+4+6*i]>offWinLow &&T2lastMuon[j+4+6*i]<offWinHigh )
+                    if( T2lastMuon[j+16+6*i]>=offWinLow &&T2lastMuon[j+16+6*i]<=offWinHigh )
                     {
                         offWinXY[i][j]->Fill(x,y);
                         offWinRZ[i][j]->Fill(sqrt(x*x+y*y),z);
@@ -289,7 +332,7 @@ Bool_t SingleTree::Process(Long64_t entry)
                         isRealOff=1; 
                         for( int a=0 ; a<5 ; a++ )
                         {
-                            if( T2lastMuon[a+4+6*i]>signalWinLow&&T2lastMuon[a+4+6*i]<signalWinHigh )
+                            if( T2lastMuon[a+16+6*i]>=signalWinLow&&T2lastMuon[a+16+6*i]<=signalWinHigh )
                             {
                                 isRealOff=0;    
                                 break;
@@ -302,19 +345,147 @@ Bool_t SingleTree::Process(Long64_t entry)
                         } 
                     }
                 }
-                singleSpecVsTime[i][5]->Fill(minT2allmuon[i],energy);
-                if( minT2allmuon[i]>signalWinLow &&minT2allmuon[i]<signalWinHigh )
+                singleSpecVsTime[i][5]->Fill(minT2allmuonI[i],energy);
+                if( minT2allmuonI[i]>=signalWinLow &&minT2allmuonI[i]<=signalWinHigh )
                 {
                     signalWinXY[i][5]->Fill(x,y);
                     signalWinRZ[i][5]->Fill(sqrt(x*x+y*y),z);
                     signalWin[i][5]->Fill(energy);
                 }
-                if( minT2allmuon[i]>offWinLow &&minT2allmuon[i]<offWinHigh )
+                if( minT2allmuonI[i]>=offWinLow &&minT2allmuonI[i]<=offWinHigh )
                 {
                     offWinXY[i][5]->Fill(x,y);
                     offWinRZ[i][5]->Fill(sqrt(x*x+y*y),z);
                     offWin[i][5]->Fill(energy);
                 }
+            }
+
+            //for time isolation cut
+            /*
+            //calculate time to next muon
+            presentTriggerTime=triggerTime;
+            for(int k=0;k<3;k++) presentMuonTriggetime[k]=T2lastMuon[34+k];
+
+            //find out next muon
+            for( int k=0 ; k<3 ; k++ )
+            {
+                bool findOut=0;
+                bool needUpdate6=0;
+                //for( int i=0 ; i<5 ; i++ )
+                //{
+                //cout<<" "<<endl;
+                //cout<<"   "<<presentTriggerTime<<" - "<<nextMuonTriggetime[k][i]<<" = "<<presentTriggerTime-nextMuonTriggetime[k][i]<<endl;
+                //if( presentTriggerTime>nextMuonTriggetime[k][i] )
+                if((T2lastMuon[34+k]==nextMuonTriggetime[k][5]) || (nextMuonTriggetime[k][5]==0.))
+                {
+                    needUpdate6=1;
+                    int i=0;
+                    for(  ; i<5 ; i++ )
+                    {
+                        cout<<"k-i  : "<<k<<"-"<<i<<endl;
+                        cout<<presentTriggerTime-T2lastMuon[34+k]<<"  =? "<<T2lastMuon[i+10+(k+1)*6]<<endl;
+                        cout<<"   "<<abs((presentTriggerTime-T2lastMuon[34+k])-T2lastMuon[i+10+(k+1)*6])<<endl;
+                        if( abs((presentTriggerTime-T2lastMuon[34+k])-T2lastMuon[i+10+(k+1)*6])<1.e-6 )
+                        {
+                            //if( i==i )
+                            //{
+                            preMuonTriggetime[k][i]=T2lastMuon[34+k];
+                            preMuonTriggetime[k][5]=T2lastMuon[34+k];
+                            break;
+                            //}
+                        }
+                    }
+                    for( int e=entry+1 ; e<totalEntries ; e++ )
+                    {
+                        GetEntry(e);
+                        if( T2lastMuon[34+k]-presentTriggerTime>100.e-3 ) break;
+                        if( T2lastMuon[34+k]>presentMuonTriggetime[k])
+                        {
+                            //for( int t=0 ; t<5 ; t++ )
+                            //{
+                            if( abs((triggerTime-T2lastMuon[34+k])-T2lastMuon[i+10+(k+1)*6])<1.e-6 )
+                            {
+                                //if( t==i )
+                                //{
+                                nextMuonTriggetime[k][i]=T2lastMuon[34+k];
+                                findOut=1;
+                                break;
+                                //}
+                            }
+                            //}
+
+                        }
+                        //if( findOut ) break;
+                    }
+                    GetEntry(entry);
+                }
+                //}
+                if( needUpdate6)
+                {
+                    //double maxTriggerTime=0.;
+                    //for( int j=0 ; j<5 ; j++ )
+                    //{
+                    //if(  maxTriggerTime==0. || preMuonTriggetime[k][j]>maxTriggerTime )
+                    //{
+                    //maxTriggerTime=preMuonTriggetime[k][j];
+                    //}
+                    // 
+                    //}
+                    //preMuonTriggetime[k][5]=maxTriggerTime;
+
+                    double minTriggerTime=0.;
+                    for( int j=0 ; j<5 ; j++ )
+                    {
+                        if( (presentTriggerTime<nextMuonTriggetime[k][j]) && ( minTriggerTime==0. || nextMuonTriggetime[k][j]<minTriggerTime) )
+                        {
+                            minTriggerTime=nextMuonTriggetime[k][j];
+                        }
+
+                    }
+                    nextMuonTriggetime[k][5]=minTriggerTime;
+                }
+            }
+            for( int i=0 ; i<3 ; i++ )
+            {
+                cout<<" "<<endl;
+                for( int j=0 ; j<6 ; j++ )
+                {
+                    cout<<T2lastMuon[j+16+6*i] <<" = "<<presentTriggerTime-preMuonTriggetime[i][j]<<" <- "<<presentTriggerTime <<" - "<<preMuonTriggetime[i][j]<<" : "<<T2lastMuon[34]<<" "<<T2lastMuon[35]<<" "<<T2lastMuon[36]<<endl;
+                }
+            }
+        */
+
+            for( int i=0 ; i<3 ; i++ )
+            {
+                for( int j=0 ; j<6 ; j++ )
+                {
+                    if( T2lastMuon[j+16+6*i]>=signalWinLow &&T2lastMuon[j+16+6*i]<=signalWinHigh )
+                    {
+                        IsignalWin[i][j]->Fill(energy);
+                    }
+                    if(T2lastMuon[j+34+6*i]>=offWinLow && T2lastMuon[j+34+6*i]<=offWinHigh)
+                    {
+                        IoffWin[i][j]->Fill(energy);
+                    }
+                }
+            double mintime=1.e9;
+            for( int j=0 ; j<3 ; j++ )
+            {
+                mintime=mintime>T2lastMuon[j+10+(i+1)*6]?T2lastMuon[j+10+(i+1)*6]:mintime;
+            }
+                    if( mintime>=signalWinLow &&mintime<=signalWinHigh )
+                    {
+                        IsignalWin[i][6]->Fill(energy);
+                    }
+                    double maxtime=-1.e9;
+            for( int j=0 ; j<3 ; j++ )
+            {
+                if(T2lastMuon[j+28+(i+1)*6]<0.)maxtime=maxtime<T2lastMuon[j+28+(i+1)*6]?T2lastMuon[j+28+(i+1)*6]:maxtime;
+            }
+                    if(maxtime>=offWinLow && maxtime<=offWinHigh)
+                    {
+                        IoffWin[i][6]->Fill(energy);
+                    }
             }
         }
     }
@@ -357,6 +528,20 @@ Bool_t SingleTree::Process(Long64_t entry)
             time2lastmuon[j]->Fill();
             time2lastmuonNoRed[j]->Fill();
         }
+        //TODO::fit time to last muon
+        for( int j=0 ; j<3 ; j++ )
+        {
+            for( int i=0 ; i<6 ; i++ )
+            {
+                Itime2lastshowermuon[j][i]->Fill(T2lastMuon[i+10+(j+1)*6]);
+            }
+            double mintime=1.e9;
+            for( int i=0 ; i<3 ; i++ )
+            {
+                mintime=mintime>T2lastMuon[i+10+(j+1)*6]?T2lastMuon[i+10+(j+1)*6]:mintime;
+            }
+            Itime2lastshowermuon[j][6]->Fill(mintime);
+        }
     }
     return kTRUE;
 }
@@ -371,7 +556,7 @@ void SingleTree::Terminate()
     std::cout<<"Now is in Terminate() "<<endl;
     if( genIsoSpec )
     {
-        histname=Form("/afs/ihep.ac.cn/users/l/lidj/largedata/IsotopesAna/%s/EH%i/%sEH%i_hists.root",dataVer.Data(),site+1,dataVer.Data(),site+1);
+        histname=Form("%s/EH%itotalHisto_%s.root",dataVer.Data(),site+1,dataVer.Data());
         TFile f(histname,"read");
         if( f.IsZombie() )
         {
@@ -392,21 +577,64 @@ void SingleTree::Terminate()
                 file->cd();
                 int offWinNum=(int)((offWinHigh-offWinLow)/(signalWinHigh-signalWinLow));
                 //std::cout<<"offWinNum  : "<<offWinNum<<endl;
-                double offMuonRate=h->Integral(h->FindBin(offWinLow),h->FindBin(9999));
-                double offMuonRateH=h->Integral(h->FindBin(offWinHigh),h->FindBin(9999));
+
+                //double offMuonRate=h->Integral(h->FindBin(offWinLow),h->FindBin(9999));
+                //double offMuonRateH=h->Integral(h->FindBin(offWinHigh),h->FindBin(9999));
+
+                int offWinLowBinNum=h->FindBin(offWinLow);
+                double offMuonRate=h->GetBinContent(offWinLowBinNum)*((h->GetBinLowEdge(offWinLowBinNum+1)-offWinLow)/h->GetBinWidth(offWinLowBinNum))*(h->GetBinLowEdge(offWinLowBinNum+1)-offWinLow)/2;
+                for( int l=offWinLowBinNum+1 ; l<h->FindBin(9999) ; l++ )
+                {
+                    offMuonRate=+h->GetBinContent(l)*(h->GetBinCenter(l)-offWinLow);
+                }
+                int offWinHighBinNumH=h->FindBin(offWinHigh);
+                double offMuonRateH=h->GetBinContent(offWinHighBinNumH)*((h->GetBinLowEdge(offWinHighBinNumH+1)-offWinHigh)/h->GetBinWidth(offWinHighBinNumH))*(h->GetBinLowEdge(offWinHighBinNumH+1)-offWinHigh)/2;
+                for( int l=offWinHighBinNumH+1 ; l<h->FindBin(9999) ; l++ )
+                {
+                    offMuonRateH=+h->GetBinContent(l)*(h->GetBinCenter(l)-offWinHigh);
+                }
+
                 //std::cout<<"offMuonRate  : "<<offMuonRate<<endl;
                 double offFrac=0.;
                 double offFracH=0.;
                 for( int k=0 ; k<offWinNum ; k++ )
                 {
-                    double offMuonRateTmp=h->Integral(h->FindBin(offWinLow+(signalWinHigh-signalWinLow)*k),h->FindBin(9999));
-                    double offMuonRateTmpH=h->Integral(h->FindBin(offWinHigh+(signalWinHigh-signalWinLow)*k),h->FindBin(9999));
+                    //double offMuonRateTmp=h->Integral(h->FindBin(offWinLow+(signalWinHigh-signalWinLow)*k),h->FindBin(9999));
+                    //double offMuonRateTmpH=h->Integral(h->FindBin(offWinHigh+(signalWinHigh-signalWinLow)*k),h->FindBin(9999));
+
+                    int offWinLowBinNumTmp=h->FindBin(offWinLow+(signalWinHigh-signalWinLow)*k);
+                    double offMuonRateTmp=h->GetBinContent(offWinLowBinNumTmp)*((h->GetBinLowEdge(offWinLowBinNumTmp+1)-offWinLow)/h->GetBinWidth(offWinLowBinNumTmp))*(h->GetBinLowEdge(offWinLowBinNumTmp+1)-offWinLow)/2;
+                    for( int l=offWinLowBinNumTmp+1 ; l<h->FindBin(9999) ; l++ )
+                    {
+                        offMuonRateTmp=+h->GetBinContent(l)*(h->GetBinCenter(l)-offWinLow);
+                    }
+                    int offWinHighBinNumHTmp=h->FindBin(offWinHigh+(signalWinHigh-signalWinLow)*k);
+                    double offMuonRateTmpH=h->GetBinContent(offWinHighBinNumHTmp)*((h->GetBinLowEdge(offWinHighBinNumHTmp+1)-offWinHigh)/h->GetBinWidth(offWinHighBinNumHTmp))*(h->GetBinLowEdge(offWinHighBinNumHTmp+1)-offWinHigh)/2;
+                    for( int l=offWinHighBinNumHTmp+1 ; l<h->FindBin(9999) ; l++ )
+                    {
+                        offMuonRateTmpH=+h->GetBinContent(l)*(h->GetBinCenter(l)-offWinHigh);
+                    }
                     //std::cout<<"offMuonRateTmp  : "<<offMuonRateTmp<<endl;
                     offFrac+=offMuonRateTmp/offMuonRate;
                     offFracH+=offMuonRateTmpH/offMuonRateH;
                 }
-                double signalMuonRate=h->Integral(h->FindBin(signalWinLow),h->FindBin(9999));
-                double signalMuonRateH=h->Integral(h->FindBin(signalWinHigh),h->FindBin(9999));
+
+                //double signalMuonRate=h->Integral(h->FindBin(signalWinLow),h->FindBin(9999));
+                //double signalMuonRateH=h->Integral(h->FindBin(signalWinHigh),h->FindBin(9999));
+
+                int signalWinLowBinNum=h->FindBin(signalWinLow);
+                double signalMuonRate=h->GetBinContent(signalWinLowBinNum)*((h->GetBinLowEdge(signalWinLowBinNum+1)-signalWinLow)/h->GetBinWidth(signalWinLowBinNum))*(h->GetBinLowEdge(signalWinLowBinNum+1)-signalWinLow)/2;
+                for( int l=signalWinLowBinNum+1 ; l<h->FindBin(9999) ; l++ )
+                {
+                    signalMuonRate=+h->GetBinContent(l)*(h->GetBinCenter(l)-signalWinLow);
+                }
+                int signalWinHighBinNumH=h->FindBin(signalWinHigh);
+                double signalMuonRateH=h->GetBinContent(signalWinHighBinNumH)*((h->GetBinLowEdge(signalWinHighBinNumH+1)-signalWinHigh)/h->GetBinWidth(signalWinHighBinNumH))*(h->GetBinLowEdge(signalWinHighBinNumH+1)-signalWinHigh)/2;
+                for( int l=signalWinHighBinNumH+1 ; l<h->FindBin(9999) ; l++ )
+                {
+                    signalMuonRateH=+h->GetBinContent(l)*(h->GetBinCenter(l)-signalWinHigh);
+                }
+
                 //std::cout<<" signalMuonRate : "<<signalMuonRate<<endl;
                 std::cout<<"signalFrac  : "<<signalMuonRate/offMuonRate<<endl;
                 std::cout<<"signalFracH  : "<<signalMuonRateH/offMuonRateH<<endl;
@@ -419,31 +647,20 @@ void SingleTree::Terminate()
                 //histname=Form("%sSpecColor",IsoMode.c_str());
                 //c[j][i]=new TCanvas(histname,"IsoSpec",600,400);
                 signalWin[j][i]->SetLineColor(kRed);
-                //std::cout<<"1.1 "<<endl;
-                //histname=Form("%sSpecColor",IsoMode.c_str());
                 signalWin[j][i]->GetXaxis()->SetTitle("Energy(MeV)");
-                //std::cout<<"1.2 "<<endl;
                 signalWin[j][i]->GetYaxis()->SetTitle("Entries");
-                //std::cout<<"1.3 "<<endl;
                 signalWin[j][i]->SetStats(kFALSE); 
-                //std::cout<<"1.4 "<<endl;
                 //signalWin[j][i]->Draw();
                 offWin[j][i]->SetLineColor(kGreen);
-                //std::cout<<"1.5 "<<endl;
                 offWin[j][i]->SetStats(kFALSE); 
-                //std::cout<<"1.6 "<<endl;
                 //offWin[j][i]->Draw("same");
                 histname=Form("%sSpec%sSlice%i_%0.1f_%0.1f",IsoMode.c_str(),ifRed[j].c_str(),i+1,LowEdge4e,HighEdge4e);
-            histname2=histname+";*";
-            gDirectory->Delete(histname2);
-                //std::cout<<"2 "<<endl;
+                histname2=histname+";*";
+                gDirectory->Delete(histname2);
                 isoSpec[j][i]=new TH1F(histname,histname,binNum,0,20);
-                //std::cout<<"3 "<<endl;
                 isoSpec[j][i]->Sumw2();
                 //isoSpec[j][i]->Add(signalWin[j][i],offWin[j][i],1,-0.5);
-                //std::cout<<"4 "<<endl;
                 isoSpec[j][i]->Add(signalWin[j][i],offWin[j][i],1,-(1/(offFrac*offMuonRate/signalMuonRate*offRealNum[j][i]/offTheoNum[j][i])));
-                //std::cout<<"5 "<<endl;
                 isoSpec[j][i]->SetLineColor(kBlue);
                 isoSpec[j][i]->SetStats(kFALSE);
                 isoSpec[j][i]->SetMarkerStyle(20);
@@ -453,9 +670,7 @@ void SingleTree::Terminate()
                 signalWin[j][i]->Write();
                 offWin[j][i]->Write();
                 isoSpec[j][i]->Write();
-                //std::cout<<"6 "<<endl;
                 singleSpecVsTime[j][i]->Write();
-                //std::cout<<"7 "<<endl;
                 file->cd();
                 signalWinXY[j][i]->Write();
                 offWinXY[j][i]->Write();
@@ -464,6 +679,31 @@ void SingleTree::Terminate()
                 //c[j][i]->Write();
 
             }
+        }
+
+        for( int j=0 ; j<3 ; j++ )
+        {
+            histname=Form("I%dEnergySpec",j+1);
+            TCanvas* cI=new TCanvas(histname,histname,2400,900);
+            cI->Divide(6,4);
+            for( int i=0 ; i<7 ; i++ )
+            {
+                cI->cd(i*3+1);
+                IsignalWin[j][i]->Draw();
+                cI->cd(i*3+2);
+                IoffWin[j][i]->Draw();
+                IisoSpec[j][i]->Sumw2();
+                IisoSpec[j][i]->Add(IsignalWin[j][i],IoffWin[j][i],1,-1);
+                cI->cd(i*3+3);
+                IisoSpec[j][i]->Draw();
+                
+                IoffWin[j][i]->Write();
+                IsignalWin[j][i]->Write();
+                IisoSpec[j][i]->Write();
+
+            }
+            histname=Form("%s/EH%iI%dEnergySpec.eps",dataVer.Data(),site+1,j+1);
+            cI->SaveAs(histname);
         }
         f.Close();
     }
@@ -522,7 +762,7 @@ void SingleTree::Terminate()
                std::cout<<"AmC   "<<i<<"  : "<<AmCSpec[i]->GetBinContent(j)<<endl;
                std::cout<<"U-L   "<<i<<"  : "<<singleUpper[i]->GetBinContent(j)-singleLower[i]->GetBinContent(j)*0.95<<endl;
                }
-             */
+               */
         }
 
         for( int i=0 ; i<4 ; i++ )
@@ -542,12 +782,13 @@ void SingleTree::Terminate()
         }
         time2Allmuon[0]->Write();
         time2Allmuon[1]->Write();
-        for( int j=0 ; j<6 ; j++ )
+        for( int j=0 ; j<3 ; j++ )
         {
-            //time2lastmuon[j]->Write();
-            //time2lastmuonNoRed[j]->Write();
+            for( int i=0 ; i<7 ; i++ )
+            {
+                Itime2lastshowermuon[j][i]->Write();
+            }
         }
-
     }
 
     //c1->Write();

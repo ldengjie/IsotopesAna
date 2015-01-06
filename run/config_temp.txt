@@ -16,12 +16,6 @@ AlgMgr.Contents += {"IsotopesAna"};
 //====================================
 IsotopesAna.EnergyLow = 4.0;  // for singles
 IsotopesAna.EnergyHigh = 20.; // for singles
-IsotopesAna.PromptEnergyLow4Li = 3.5;  // MeV
-IsotopesAna.PromptEnergyHigh4Li = 12.; // MeV
-IsotopesAna.DelayedEnergyLow4Li = 6.;  // MeV
-IsotopesAna.DelayedEnergyHigh4Li = 12.;  // MeV
-IsotopesAna.LiIntervalMin = 1.e-6;  // 1 us
-IsotopesAna.LiIntervalMax = 1.e-4; // 100 us
 IsotopesAna.Time2LastBufEvent = 2.e-4;
 IsotopesAna.AdMuonELow = 20.;//no use
 IsotopesAna.AdMuonEHigh =2500.;
@@ -46,7 +40,7 @@ SvcMgr.Contents += {"SelCycler"};
 
 SelCycler.Tags = { "ForceTrigTag", "CrossTrigTag", "RpcNoiseTag", "FlasherTag", "MuonTag"};
 //SelCycler.Tags += { "RpcValidTag" };
-SelCycler.TimeWindow = { -0.1, 0.1};
+SelCycler.TimeWindow = { -1, 1.};
 SelCycler.KeepFirstEvtEachFile = TRUE;
 
 //RpcValidTag.GoodFileList ={"RPCGOODFILELIST/SITE/RPCfILENAME"};
@@ -63,7 +57,7 @@ MuonTag.ApplyVeto = FALSE;
 
 //Set FanCycler as the Cycler of LAF
 LafMain.Cycler = "FanCycler";
-FanCycler.TimeWindow = { -10., 1e-1 };
+FanCycler.TimeWindow = { -10., 1. };
 
 FanCycler.Tags = { "FanAdMuonTag" };
 FanAdMuonTag.ApplyVeto = FALSE;

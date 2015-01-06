@@ -136,7 +136,7 @@ isoItem isoLi9={"Li9",0,0.1717,0.081,0.8 ,1.e2,0,5.e6,415};
 isoItem isoHe8={"He8",0,0.2572,0.111,0.8 ,1.e2,0,5.e6,432};
 isoItem isoBkg={"Bkg",1,0.5   ,0.   ,50. ,5.e4,0,5.e6,416};
 
-fitInf fitB12={"B12",1,1,1,5.5 ,20.0,0.001,0.501,5.5 ,20.0,0.002,0.082,{"B12","N12","C9","He8","Li9","Li8","B8","Bkg"},{"B12","N12","C9","He8","Li9"},"N12"};
+fitInf fitB12={"B12",1,1,1,5.5 ,20.0,0.001,0.501,5.5 ,7.0,0.002,0.082,{"B12","N12","C9","He8","Li9","Li8","B8","Bkg"},{"B12","N12","C9","He8","Li9"},"N12"};
 //fitInf fitB12={"B12",1,1,1,5.5 ,20.0,0.001,0.501,5.5 ,20.0,0.002,0.060,{"B12","N12","C9","He8","Li9","Bkg"},{"B12","N12","C9","He8","Li9"},"N12"};
 fitInf fitN12={"N12",1,1,1,14.0,20.0,0.001,0.501,14.0,20.0,0.002,0.060,{"N12","C9","He8","Li9","Bkg"},{"N12","C9","He8","Li9"},"C9"};
 fitInf fitLi8={"Li8",1,1,1,5.5 ,20.0,0.8  ,10.  ,5.5 ,20.0,0.6  ,4.0  ,{"Li8","B8","C9","Bkg"},{"Li8","B8","C9"},"B8"};
@@ -304,23 +304,11 @@ void genIsoPdf(isoItem* myIso,fitInf* myfit)
     nameStr2=Form("%s distribution",myIso->isoName.c_str());
     myIso->fitExpPdf=new RooExponential(nameStr,nameStr2, *xt, *myIso->fitLambda);
 
-    //it's necessary to calculate here ?no
-    //xt->setRange("timeTRange",myfit->timeTlow,myfit->timeThigh);
-    //RooAbsReal* timeTTmpCoe =myIso->fitExpPdf->createIntegral(*xt,NormSet(*xt),Range("timeTRange"));
-    //std::cout<<"timeTTmpCoe  : "<<timeTTmpCoe->getVal()<<endl;
     nameStr=Form("%stimeTCutCoe",myIso->isoName.c_str());
     myIso->timeTCutCoe=new RooRealVar(nameStr,nameStr,1);
-    //myIso->timeTCutCoe=new RooRealVar(nameStr,nameStr,timeTTmpCoe->getVal());
-    //delete timeTTmpCoe;
-    //
-    //xt->setRange("specTRange",myfit->specTlow,myfit->specThigh);
-    //RooAbsReal* specTTmpCoe =myIso->fitExpPdf->createIntegral(*xt,NormSet(*xt),Range("specTRange"));
-    //std::cout<<"specTTmpCoe  : "<<specTTmpCoe->getVal()<<endl;
+
     nameStr=Form("%sspecTCutCoe",myIso->isoName.c_str());
     myIso->specTCutCoe=new RooRealVar(nameStr,nameStr,1);
-    //myIso->specTCutCoe=new RooRealVar(nameStr,nameStr,specTTmpCoe->getVal());
-    //delete specTTmpCoe;
-
 
     nameStr=Form("ExtendPdf%s",myIso->isoName.c_str());
     myIso->fitExtendPdf=new RooExtendPdf(nameStr,nameStr,*myIso->fitExpPdf,*(myIso->tFitNum)) ;
@@ -341,21 +329,16 @@ void genIsoPdf(isoItem* myIso,fitInf* myfit)
         myIso->ehd->plotOn(framee,LineColor(kRed),DataError(RooAbsData::None));
         //ce->cd(2) ;  framee->Draw() ;
 
-        xe->setRange("timeERange",myfit->timeElow,myfit->timeEhigh);
-        RooAbsReal* timeETmpCoe =myIso->fitHistPdf->createIntegral(*xe,NormSet(*xe),Range("timeERange"));
+        double timeECoe=h->Integral(h->FindBin(myfit->timeElow),h->FindBin(myfit->timeEhigh))/h->Integral(1,h->GetNbinsX());
+        cout<<"timeECoe  : "<<timeECoe<<endl;
         nameStr=Form("%stimeECutCoe",myIso->isoName.c_str());
-        myIso->timeECutCoe=new RooRealVar(nameStr,nameStr,timeETmpCoe->getVal());
-        std::cout<<"timeETmpCoe  : "<<timeETmpCoe->getVal()<<endl;
-        delete timeETmpCoe;
+        myIso->timeECutCoe=new RooRealVar(nameStr,nameStr,timeECoe);
 
-        xe->setRange("specERange",myfit->specElow,myfit->specEhigh);
-        RooAbsReal* specETmpCoe =myIso->fitHistPdf->createIntegral(*xe,NormSet(*xe),Range("specERange"));
+        double specECoe=h->Integral(h->FindBin(myfit->specElow),h->FindBin(myfit->specEhigh))/h->Integral(1,h->GetNbinsX());
+        cout<<"specECoe  : "<<specECoe<<endl;
         nameStr=Form("%sspecECutCoe",myIso->isoName.c_str());
-        myIso->specECutCoe=new RooRealVar(nameStr,nameStr,specETmpCoe->getVal());
-        std::cout<<"specETmpCoe  : "<<specETmpCoe->getVal()<<endl;
-        delete specETmpCoe;
+        myIso->specECutCoe=new RooRealVar(nameStr,nameStr,specECoe);
 
-        //myIso->specECutCoe=myIso->fitHistPdf->createIntegral(*xe,NormSet(*xe));
         nameStr=Form("%seFitNum",myIso->isoName.c_str());
         myIso->eFitNum=new RooFormulaVar(nameStr,nameStr,"@0*@1*@2/(@3*@4)",RooArgList(*(myIso->tFitNum),*(myIso->specECutCoe),*(myIso->specTCutCoe),*(myIso->timeTCutCoe),*(myIso->timeECutCoe)));
         RooPlot* framee1 = xe->frame(Title("spec p.d.f")) ;
@@ -414,9 +397,7 @@ void genData(fitInf* fitinf, string dataVer,string site)
     nameStr=Form("%s/%siso_%s.root",dataVer.c_str(),site.c_str(),dataVer.c_str());
     TFile* f=new TFile(nameStr,"read");
     TH1F* h[6];
-    TH1F* hs[6];
     TH1F* hs0[6];
-    TH1F* ht[7];
     TTree* t[7];
     if( fitinf->isNoRed )
     {
@@ -429,13 +410,13 @@ void genData(fitInf* fitinf, string dataVer,string site)
     {
         if( fitinf->isbinned )
         {
-            nameStr=Form("time2lastshowermuon%s%i_%0.1f_%0.1f",fitinf->ifRed.c_str(),i+1,fitinf->specElow,fitinf->specEhigh);
+            nameStr=Form("time2lastshowermuon%s%i_%0.1f_%0.1f",fitinf->ifRed.c_str(),i+1,fitinf->specElow,20.);
             if( i==5 )
             {
-                nameStr=Form("time2Allmuon%s_%0.1f_%0.1f",fitinf->ifRed.c_str(),fitinf->specElow,fitinf->specEhigh); 
+                nameStr=Form("time2Allmuon%s_%0.1f_%0.1f",fitinf->ifRed.c_str(),fitinf->specElow,20.); 
             }
             h[i]=(TH1F*)f->Get(nameStr);
-            nameStr2=Form("%sSpec%sSlice%i_%0.1f_%0.1f",fitinf->mode.c_str(),fitinf->ifRed.c_str(),i+1,fitinf->specElow,fitinf->specEhigh);
+            nameStr2=Form("%sSpec%sSlice%i_%0.1f_%0.1f",fitinf->mode.c_str(),fitinf->ifRed.c_str(),i+1,fitinf->specElow,20.);
             hs0[i]=(TH1F*)f->Get(nameStr2);
             if( !hs0[i] )
             {
@@ -444,48 +425,21 @@ void genData(fitInf* fitinf, string dataVer,string site)
             }
             int hemax=hs0[i]->FindBin(fitinf->specEhigh);
             int hemin=hs0[i]->FindBin(fitinf->specElow);
-            int heBinNum=hemax-hemin;
-            std::cout<<"heBinNum  : "<<heBinNum<<endl;
-            nameStr=Form("slice%ispec",i+1);
-            hs[i]=new TH1F(nameStr,nameStr,heBinNum,fitinf->specElow,fitinf->specEhigh);
-            int pdfZeroBin=hs0[i]->FindBin(fitinf->histPdfZero)+1-hemin;
-            std::cout<<"histPdfZero is at  : "<<pdfZeroBin<<endl;
-            //for( int j=1 ; j<=heBinNum ; j++ )
-            for( int j=1 ; j<pdfZeroBin; j++ )
-            {
-                hs[i]->SetBinContent(j,hs0[i]->GetBinContent(hemin+j-1));
-                hs[i]->SetBinError(j,hs0[i]->GetBinError(hemin+j-1));
-            }
-            fitinf->specNdf=hs[i]->GetNbinsX()-fitinf->specComMap.size()-2;
-            //for( int j=hs[i]->FindBin(fitinf->specElow) ; j<(hs[i]->FindBin(fitinf->specEhigh)-hs[i]->FindBin(fitinf->specElow)) ; j++ )
-            //{
-            //std::cout<<"spec bin "<<j <<"  : "<<hs[i]->GetBinContent(j)<<endl;
-            // 
-            //}
+            fitinf->specNdf=hemax-hemin-fitinf->specComMap.size()-1;
 
+            h[i]->SetOption("E1");
+            h[i]->Rebin(5);
             int hmax=h[i]->FindBin(fitinf->timeThigh);
             int hmin=h[i]->FindBin(fitinf->timeTlow);
-            int hBinNum=hmax-hmin;
-            std::cout<<"hBinNum  : "<<hBinNum<<endl;
-            nameStr=Form("slice%i",i+1);
-            ht[i]=new TH1F(nameStr,nameStr,hBinNum,fitinf->timeTlow,fitinf->timeThigh);
-            for( int j=1 ; j<=hBinNum ; j++ )
-            {
-                ht[i]->SetBinContent(j,h[i]->GetBinContent(hmin+j-1));
-                //ht[i]->SetBinError(j,h[i]->GetBinError(hmin+j-1));
-            }
-
-            ht[i]->SetOption("E1");
-            ht[i]->Rebin(5);
-            fitinf->timeNdf=ht[i]->GetNbinsX()-fitinf->timeComMap.size()-1;
-            fitinf->binnedData[i]=new RooDataHist(Form("%stime2lastmuonBinned",fitinf->mode.c_str()),"time2lastmuon binned data",*xt,ht[i]);
-            fitinf->binnedData[i+6]=new RooDataHist(Form("%sspecBinned",fitinf->mode.c_str()),"spec binned data",*xe,hs[i]);
+            fitinf->timeNdf=hmax-hmin-fitinf->timeComMap.size()-1;
+            fitinf->binnedData[i]=new RooDataHist(Form("%stime2lastmuonBinned",fitinf->mode.c_str()),"time2lastmuon binned data",*xt,h[i]);
+            fitinf->binnedData[i+6]=new RooDataHist(Form("%sspecBinned",fitinf->mode.c_str()),"spec binned data",*xe,hs0[i]);
         }else
         {
-            nameStr2=Form("slice%s%i_%0.1f_%0.1f",fitinf->ifRed.c_str(),i+1,fitinf->specElow,fitinf->specEhigh);
+            nameStr2=Form("slice%s%i_%0.1f_%0.1f",fitinf->ifRed.c_str(),i+1,fitinf->specElow,20.);
             if( i==5 )
             {
-                nameStr2=Form("slice%s6_%0.1f_%0.1f",fitinf->ifRed.c_str(),fitinf->specElow,fitinf->specEhigh);
+                nameStr2=Form("slice%s6_%0.1f_%0.1f",fitinf->ifRed.c_str(),fitinf->specElow,20.);
             }
             t[i]=(TTree*)f->Get(nameStr2);
             fitinf->unBinnedData[i]=new RooDataSet(Form("%stime2lastmuon",fitinf->mode.c_str()),"time2lastmuon unbinned data",t[i],*xt);
@@ -497,9 +451,6 @@ void genData(fitInf* fitinf, string dataVer,string site)
 void prepareInf( string dataVer,string site,string fitmode,bool doSimFit)
 {
     //fit information
-    xt=new RooRealVar("xt","x for time fit",0,1.e6);//should be big=1.e6!needed to calculate integral of pdf = coe
-    xe=new RooRealVar("xe","x for spec fit",0,1.e6);//should be big=1.e6!needed to calculate integral of pdf = coe
-    rateMu=new RooRealVar("rateMu","rateMu",0);//should be 0!needed to calculate integral of pdf = coe
     //isotopes information
     iso.insert(map<string,isoItem*>::value_type("B12",&isoB12));
     iso.insert(map<string,isoItem*>::value_type("N12",&isoN12));
@@ -522,27 +473,24 @@ void prepareInf( string dataVer,string site,string fitmode,bool doSimFit)
     std::cout<<"fit[fitmode]->specElow  : "<<fit[fitmode]->specElow<<endl;
     std::cout<<"fit[fitmode]->specEhigh  : "<<fit[fitmode]->specEhigh<<endl;
 
+    xt=new RooRealVar("xt","x for time fit",(fit[fitmode]->timeThigh-fit[fitmode]->timeTlow)/2,fit[fitmode]->timeTlow,fit[fitmode]->timeThigh);
+    xe=new RooRealVar("xe","x for spec fit",(fit[fitmode]->specEhigh-fit[fitmode]->specElow)/2,fit[fitmode]->specElow,fit[fitmode]->specEhigh);
+    rateMu=new RooRealVar("rateMu","rateMu",0);
+    std::cout<<"initialize xt setRange "<<endl;
+    std::cout<<"xt : "<<xt->getVal()<<endl;
+    std::cout<<"initialize xe setRange "<<endl;
+    std::cout<<"xe : "<<xe->getVal()<<endl;
+
     fit[fitmode]->doSimulFit=doSimFit;
     calDaqTime(fit[fitmode],dataVer,site);
     for( int i=0 ; i<10 ; i++ )
     {
         if( fit[fitmode]->timeCom[i]!="" )
         {
-            //genIsoPdf(iso[fit[fitmode]->timeCom[i]],fit[fitmode]->timeTlow,fit[fitmode]->timeThigh,fit[fitmode]->specElow,fit[fitmode]->specEhigh); 
             genIsoPdf(iso[fit[fitmode]->timeCom[i]],fit[fitmode]); //calculate kinds of coe.
         }
     }
 
-    xt->setRange(fit[fitmode]->timeTlow,fit[fitmode]->timeThigh);
-    xt->setVal((fit[fitmode]->timeThigh-fit[fitmode]->timeTlow)/2);
-    std::cout<<"done xt setRange "<<endl;
-    std::cout<<"xt : "<<xt->getVal()<<endl;
-
-    xe->setRange(fit[fitmode]->specElow,fit[fitmode]->specEhigh);
-    xe->setVal((fit[fitmode]->specEhigh-fit[fitmode]->specElow)/2);
-    std::cout<<"done xe setRange "<<endl;
-    std::cout<<"xe : "<<xe->getVal()<<endl;
-    //genFitPdf(fit[fitmode]);genData(fit[fitmode],dataVer,site);
     genFitPdf(fit[fitmode]);genData(fit[fitmode],dataVer,site);//genFitPdf should be first ,genData() will use a value form it.
 }
 
@@ -624,9 +572,9 @@ int doFit(int siteNum,string dataVer,string fitMode,bool doSimFit,double fitLowR
             {
                 std::cout<<"now is  : "<<j+1<<endl;
                 rateMu->setVal(-fit[fitMode]->muonRate[j]);
-                xt->setRange(0,1.e6);
                 xt->setRange("timeTRange",fit[fitMode]->timeTlow,fit[fitMode]->timeThigh);
                 xt->setRange("specTRange",fit[fitMode]->specTlow,fit[fitMode]->specThigh);
+                xt->setRange(0,1.e6);
                 for( map<string,isoItem*>::iterator it=fit[fitMode]->timeComMap.begin() ; it!=fit[fitMode]->timeComMap.end() ; it++ )
                 {
                     RooAbsReal* timeTTmpCoe =it->second->fitExpPdf->createIntegral(*xt,NormSet(*xt),Range("timeTRange"));
@@ -811,20 +759,7 @@ int doFit(int siteNum,string dataVer,string fitMode,bool doSimFit,double fitLowR
             RooCategory sample("sample","sample") ;
             sample.defineType("spec");
             sample.defineType("time");
-            //map<string,RooDataHist*> mapping;
-            //mapping["time"] = (fit[fitMode]->binnedData[j]);
-            //mapping["spec"] = (fit[fitMode]->binnedData[j+6]);
             RooSimultaneous simPdf("simPdf","simultaneous pdf",sample) ;
-            std::cout<<"!!!timegetVal at begin  : "<<fit[fitMode]->timeFitPdf->getVal()<<endl;
-            std::cout<<"xt : "<<xt->getVal()<<endl;
-            std::cout<<"xt0 : "<<xt->getVal(0)<<endl;
-            xt->setRange("xt1",0.001,0.501);
-            std::cout<<"integrate xt : "<<(fit[fitMode]->timeFitPdf->createIntegral(*xt,NormSet(*xt),Range("xt1")))->getVal()<<endl;
-            std::cout<<"!!!specgetVal at begin  : "<<fit[fitMode]->specFitPdf->getVal()<<endl;
-            xe->setRange("xe1",5.,20.);
-            //xe->setRange(5.,20.);
-            std::cout<<"xe : "<<xe->getVal()<<endl;
-            std::cout<<"integrate xe : "<<(fit[fitMode]->specFitPdf->createIntegral(*xe,NormSet(*xe),Range("xe1")))->getVal()<<endl;
             simPdf.addPdf(*(fit[fitMode]->specFitPdf),"spec") ;
             simPdf.addPdf(*(fit[fitMode]->timeFitPdf),"time") ;
 
@@ -835,10 +770,15 @@ int doFit(int siteNum,string dataVer,string fitMode,bool doSimFit,double fitLowR
 
             xt->setBins(fit[fitMode]->binnedData[j]->numEntries());
             xe->setBins(fit[fitMode]->binnedData[j+6]->numEntries());
-            //RooDataHist combData("combData","combined data",RooArgList(*xt,*xe),sample,mapping);
-            //RooDataHist combData("combData","combined data",RooArgSet(*xt,*xe),Index(sample),Import("time",*(fit[fitMode]->binnedData[j])),Import("spec",*(fit[fitMode]->binnedData[j+6]))) ;
             RooDataHist combData("combData","combined data",RooArgSet(*xe,*xt),Index(sample),Import("spec",*(fit[fitMode]->binnedData[j+6])),Import("time",*(fit[fitMode]->binnedData[j]))) ;
-            simPdf.fitTo(combData,SumW2Error(kTRUE),PrintEvalErrors(10)) ;
+
+            RooAbsReal* nll = simPdf.createNLL(combData) ;
+            //RooAbsReal* nll = simPdf.createChi2(combData,DataError(RooAbsData::SumW2)) ;
+            RooMinuit m(*nll) ; 
+            m.migrad() ; 
+            m.hesse() ;
+            //m.contour(*(iso[fit[fitMode]->con]->tFitNum),*(iso[fitMode]->tFitNum),1,2,3) ; 
+            //simPdf.fitTo(combData,SumW2Error(kTRUE),PrintEvalErrors(10)) ;
             std::cout<<"begin to get value "<<endl;
             std::cout<<"timeComMap.size  : "<<fit[fitMode]->timeComMap.size()<<endl;
             std::cout<<"specComMap.size  : "<<fit[fitMode]->specComMap.size()<<endl;

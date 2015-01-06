@@ -22,7 +22,20 @@ IsoNumFit.C
         2 ./IsoNumFit P14A 2 C9 0 0 50 // dataVer, siteNum=0, FitMode="B12", doSimFit=1, FitLowRange, FitHighRange
         3 submit to server. the job scripts are job/multiJob/*.csh ,you can submit them to server by 'source multi_submit.sh',or 'source multi_submit_64.sh'--dyb64q and 'source multi_submit_s.sh'--dybshortq
     #six slices
-        1 gcmR IsoNumFit
-        2 ./IsoNumFit P14A 1 B12 1>*log
+        1 gcmR IsoNumFit or press <F8> in vim
+        2 ./IsoNumFit P14A 1 B12 1>*log or ./IsoNumFit P14A 1 B12 1 | tee *log
         3 submit to server. 'source submit.csh'
+
+Required data:
+        <SingleTree.C>    
+        in : #P14A/EH3totalHisto_P14A.root# -> calculated signalFrac/offFrac
+        out: P14A/EH3iso_P14A.root  -> contained timepdf energSpecPdf
+        <GenIsoSpec.C>
+        in : /afs/ihep.ac.cn/users/l/lidj/largedata/IsotopesAna/P14A/EH3/*IsotopesAna.root -> prepared for SingleTree.C
+        <IsoNumFit.C> 
+        in : P14A/EH3iso_P14A.root <- got timepdf energSpecPdf
+             #IsoTheoreticalSpec.root# <- got Theoretical energy Spec
+             #P14A/EH3totalHisto_P14A.root# -> calculated live time
+        TIPS:#P14A/EH3totalHisto_P14A.root# is same with #/afs/ihep.ac.cn/users/l/lidj/largedata/IsotopesAna/P14A/EH3/P14AEH3_hists.root#
+
 
