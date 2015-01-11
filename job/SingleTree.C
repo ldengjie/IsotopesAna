@@ -120,7 +120,7 @@ void SingleTree::Begin(TTree * /*tree*/)
     //}
     //
     //}
-            
+
     if( genTimeFitDis )
     {
         //histogram - binned data for MML or Chi2
@@ -133,10 +133,10 @@ void SingleTree::Begin(TTree * /*tree*/)
                 gDirectory->Delete(histname2);
                 Itime2lastshowermuon[j][i]=new TH1F(histname,"Itime2lastshowermuon",99999,0.001,100);
             }
-                histname=Form("I%dtime2lastshowermuon123_%0.1f_%0.1f",j+1,LowEdge,HighEdge);
-                histname2=histname+";*";
-                gDirectory->Delete(histname2);
-                Itime2lastshowermuon[j][6]=new TH1F(histname,"Itime2lastshowermuon",99999,0.001,100);
+            histname=Form("I%dtime2lastshowermuon123_%0.1f_%0.1f",j+1,LowEdge,HighEdge);
+            histname2=histname+";*";
+            gDirectory->Delete(histname2);
+            Itime2lastshowermuon[j][6]=new TH1F(histname,"Itime2lastshowermuon",99999,0.001,100);
 
         }
         for( int i=0 ; i<5 ; i++ )
@@ -227,18 +227,18 @@ void SingleTree::Begin(TTree * /*tree*/)
                 gDirectory->Delete(histname2);
                 IisoSpec[j][i]=new TH1F(histname,histname,binNum,0,20);
             }
-                histname=Form("%sI%dsignalEnergySlice123_%0.1f_%0.1f",IsoMode.c_str(),j+1,LowEdge,HighEdge);
-                histname2=histname+";*";
-                gDirectory->Delete(histname2);
-                IsignalWin[j][6]=new TH1F(histname,histname,binNum,0,20);
-                histname=Form("%sI%doffEnergySlice123_%0.1f_%0.1f",IsoMode.c_str(),j+1,LowEdge,HighEdge);
-                histname2=histname+";*";
-                gDirectory->Delete(histname2);
-                IoffWin[j][6]=new TH1F(histname,histname,binNum,0,20);
-                histname=Form("%sI%dSpecSlice123_%0.1f_%0.1f",IsoMode.c_str(),j+1,LowEdge4e,HighEdge4e);
-                histname2=histname+";*";
-                gDirectory->Delete(histname2);
-                IisoSpec[j][6]=new TH1F(histname,histname,binNum,0,20);
+            histname=Form("%sI%dsignalEnergySlice123_%0.1f_%0.1f",IsoMode.c_str(),j+1,LowEdge,HighEdge);
+            histname2=histname+";*";
+            gDirectory->Delete(histname2);
+            IsignalWin[j][6]=new TH1F(histname,histname,binNum,0,20);
+            histname=Form("%sI%doffEnergySlice123_%0.1f_%0.1f",IsoMode.c_str(),j+1,LowEdge,HighEdge);
+            histname2=histname+";*";
+            gDirectory->Delete(histname2);
+            IoffWin[j][6]=new TH1F(histname,histname,binNum,0,20);
+            histname=Form("%sI%dSpecSlice123_%0.1f_%0.1f",IsoMode.c_str(),j+1,LowEdge4e,HighEdge4e);
+            histname2=histname+";*";
+            gDirectory->Delete(histname2);
+            IisoSpec[j][6]=new TH1F(histname,histname,binNum,0,20);
 
         }
 
@@ -298,7 +298,7 @@ Bool_t SingleTree::Process(Long64_t entry)
     //{
     //std::cout<<entry<<endl;
     //}
-    
+
     //cut all events from Z>=900;cut flahser that exists in P12E P13A  from this zone;
     if(!(z<900&&!(x>-1700&&x<-1200&&y>-1500&&y<-900&&z>-900&&x<-500)) )
     {
@@ -360,100 +360,6 @@ Bool_t SingleTree::Process(Long64_t entry)
                 }
             }
 
-            //for time isolation cut
-            /*
-            //calculate time to next muon
-            presentTriggerTime=triggerTime;
-            for(int k=0;k<3;k++) presentMuonTriggetime[k]=T2lastMuon[34+k];
-
-            //find out next muon
-            for( int k=0 ; k<3 ; k++ )
-            {
-                bool findOut=0;
-                bool needUpdate6=0;
-                //for( int i=0 ; i<5 ; i++ )
-                //{
-                //cout<<" "<<endl;
-                //cout<<"   "<<presentTriggerTime<<" - "<<nextMuonTriggetime[k][i]<<" = "<<presentTriggerTime-nextMuonTriggetime[k][i]<<endl;
-                //if( presentTriggerTime>nextMuonTriggetime[k][i] )
-                if((T2lastMuon[34+k]==nextMuonTriggetime[k][5]) || (nextMuonTriggetime[k][5]==0.))
-                {
-                    needUpdate6=1;
-                    int i=0;
-                    for(  ; i<5 ; i++ )
-                    {
-                        cout<<"k-i  : "<<k<<"-"<<i<<endl;
-                        cout<<presentTriggerTime-T2lastMuon[34+k]<<"  =? "<<T2lastMuon[i+10+(k+1)*6]<<endl;
-                        cout<<"   "<<abs((presentTriggerTime-T2lastMuon[34+k])-T2lastMuon[i+10+(k+1)*6])<<endl;
-                        if( abs((presentTriggerTime-T2lastMuon[34+k])-T2lastMuon[i+10+(k+1)*6])<1.e-6 )
-                        {
-                            //if( i==i )
-                            //{
-                            preMuonTriggetime[k][i]=T2lastMuon[34+k];
-                            preMuonTriggetime[k][5]=T2lastMuon[34+k];
-                            break;
-                            //}
-                        }
-                    }
-                    for( int e=entry+1 ; e<totalEntries ; e++ )
-                    {
-                        GetEntry(e);
-                        if( T2lastMuon[34+k]-presentTriggerTime>100.e-3 ) break;
-                        if( T2lastMuon[34+k]>presentMuonTriggetime[k])
-                        {
-                            //for( int t=0 ; t<5 ; t++ )
-                            //{
-                            if( abs((triggerTime-T2lastMuon[34+k])-T2lastMuon[i+10+(k+1)*6])<1.e-6 )
-                            {
-                                //if( t==i )
-                                //{
-                                nextMuonTriggetime[k][i]=T2lastMuon[34+k];
-                                findOut=1;
-                                break;
-                                //}
-                            }
-                            //}
-
-                        }
-                        //if( findOut ) break;
-                    }
-                    GetEntry(entry);
-                }
-                //}
-                if( needUpdate6)
-                {
-                    //double maxTriggerTime=0.;
-                    //for( int j=0 ; j<5 ; j++ )
-                    //{
-                    //if(  maxTriggerTime==0. || preMuonTriggetime[k][j]>maxTriggerTime )
-                    //{
-                    //maxTriggerTime=preMuonTriggetime[k][j];
-                    //}
-                    // 
-                    //}
-                    //preMuonTriggetime[k][5]=maxTriggerTime;
-
-                    double minTriggerTime=0.;
-                    for( int j=0 ; j<5 ; j++ )
-                    {
-                        if( (presentTriggerTime<nextMuonTriggetime[k][j]) && ( minTriggerTime==0. || nextMuonTriggetime[k][j]<minTriggerTime) )
-                        {
-                            minTriggerTime=nextMuonTriggetime[k][j];
-                        }
-
-                    }
-                    nextMuonTriggetime[k][5]=minTriggerTime;
-                }
-            }
-            for( int i=0 ; i<3 ; i++ )
-            {
-                cout<<" "<<endl;
-                for( int j=0 ; j<6 ; j++ )
-                {
-                    cout<<T2lastMuon[j+16+6*i] <<" = "<<presentTriggerTime-preMuonTriggetime[i][j]<<" <- "<<presentTriggerTime <<" - "<<preMuonTriggetime[i][j]<<" : "<<T2lastMuon[34]<<" "<<T2lastMuon[35]<<" "<<T2lastMuon[36]<<endl;
-                }
-            }
-        */
 
             for( int i=0 ; i<3 ; i++ )
             {
@@ -463,29 +369,29 @@ Bool_t SingleTree::Process(Long64_t entry)
                     {
                         IsignalWin[i][j]->Fill(energy);
                     }
-                    if(T2lastMuon[j+34+6*i]>=offWinLow && T2lastMuon[j+34+6*i]<=offWinHigh)
+                    if(T2lastMuon[j+40+6*3]>=offWinLow && T2lastMuon[j+40+6*3]<=offWinHigh)
                     {
                         IoffWin[i][j]->Fill(energy);
                     }
                 }
-            double mintime=1.e9;
-            for( int j=0 ; j<3 ; j++ )
-            {
-                mintime=mintime>T2lastMuon[j+10+(i+1)*6]?T2lastMuon[j+10+(i+1)*6]:mintime;
-            }
-                    if( mintime>=signalWinLow &&mintime<=signalWinHigh )
-                    {
-                        IsignalWin[i][6]->Fill(energy);
-                    }
-                    double maxtime=-1.e9;
-            for( int j=0 ; j<3 ; j++ )
-            {
-                if(T2lastMuon[j+28+(i+1)*6]<0.)maxtime=maxtime<T2lastMuon[j+28+(i+1)*6]?T2lastMuon[j+28+(i+1)*6]:maxtime;
-            }
-                    if(maxtime>=offWinLow && maxtime<=offWinHigh)
-                    {
-                        IoffWin[i][6]->Fill(energy);
-                    }
+                double mintime=1.e9;
+                for( int j=0 ; j<3 ; j++ )
+                {
+                    mintime=mintime>T2lastMuon[j+16+i*6]?T2lastMuon[j+16+i*6]:mintime;
+                }
+                if( mintime>=signalWinLow &&mintime<=signalWinHigh )
+                {
+                    IsignalWin[i][6]->Fill(energy);
+                }
+                double maxtime=-1.e9;
+                for( int j=0 ; j<3 ; j++ )
+                {
+                    if(T2lastMuon[j+40+3*6]<0.)maxtime=maxtime<T2lastMuon[j+40+3*6]?T2lastMuon[j+40+3*6]:maxtime;
+                }
+                if(maxtime>=offWinLow && maxtime<=offWinHigh)
+                {
+                    IoffWin[i][6]->Fill(energy);
+                }
             }
         }
     }
@@ -533,12 +439,12 @@ Bool_t SingleTree::Process(Long64_t entry)
         {
             for( int i=0 ; i<6 ; i++ )
             {
-                Itime2lastshowermuon[j][i]->Fill(T2lastMuon[i+10+(j+1)*6]);
+                Itime2lastshowermuon[j][i]->Fill(T2lastMuon[i+16+j*6]);
             }
             double mintime=1.e9;
             for( int i=0 ; i<3 ; i++ )
             {
-                mintime=mintime>T2lastMuon[i+10+(j+1)*6]?T2lastMuon[i+10+(j+1)*6]:mintime;
+                mintime=mintime>T2lastMuon[i+16+j*6]?T2lastMuon[i+16+j*6]:mintime;
             }
             Itime2lastshowermuon[j][6]->Fill(mintime);
         }
@@ -696,7 +602,7 @@ void SingleTree::Terminate()
                 IisoSpec[j][i]->Add(IsignalWin[j][i],IoffWin[j][i],1,-1);
                 cI->cd(i*3+3);
                 IisoSpec[j][i]->Draw();
-                
+
                 IoffWin[j][i]->Write();
                 IsignalWin[j][i]->Write();
                 IisoSpec[j][i]->Write();

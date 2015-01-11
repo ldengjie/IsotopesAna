@@ -31,11 +31,11 @@ class IsotopesAna : public AlgBase
     void dump(int i_det,bool IsFinal,PhyEvent* CurEvent);
 
     int ADMuonNum[7];
-	double time2Muon[52];
+	double time2Muon[64];
 	TString histName;
 	//int Ebins;
 	int det;
-	double t2muon[52];
+	double t2muon[64];
 	
 	bool saveSingle;
 	TTree* SingleTree;
@@ -43,10 +43,12 @@ class IsotopesAna : public AlgBase
 	float y;
 	float z;
 	float energy;
-	double T2lastMuon[52];
+	double T2lastMuon[64];
     double triggerTime;
 
     double t2lastshowermuon;
+    int i4num1[4];
+    int i4num2[4];
 
     TTimeStamp lastOwpMuonTrigtime;
     TTimeStamp lastIwpMuonTrigtime;
@@ -61,7 +63,7 @@ class IsotopesAna : public AlgBase
 	TH1F* muonTimeIntervalNoRed[6];
 	TH1F* muonTimeInterval[6];
 	TH1F* muonEnergy[6];
-	TH1F* muonEnergyI[3][6];
+	TH1F* muonEnergyI[4][6];
 	TH1F* muonEnergyNoRed[6];
 
 
@@ -71,16 +73,16 @@ class IsotopesAna : public AlgBase
 	vector<TTimeStamp> lastshowermuonTrigtimeVec[6][4];
 	vector<float> muonEnergyVec[6][4];
 
-	TTimeStamp lastshowermuonTrigtimeI[3][6][4];
-        vector<double> adMuonTriggerTimeBuf[3][6][4];
-        vector<double> adMuonEnergyBuf[3][6][4];
-        PhyEvent* finalTestADMuon[3][6][4];
-        double nextImuonTriggerTime[3][6][4];
+	TTimeStamp lastshowermuonTrigtimeI[4][6][4];
+        vector<double> adMuonTriggerTimeBuf[4][6][4];
+        vector<double> adMuonEnergyBuf[4][6][4];
+        PhyEvent* finalTestADMuon[4][6][4];
+        double nextImuonTriggerTime[4][6][4];
 
     TH1F* time2lastshowermuon[6];
 	TH1F* showermuonNum[6];
-    TH1F* time2lastshowermuonI[3][6];
-	TH1F* showermuonNumI[3][6];
+    TH1F* time2lastshowermuonI[4][6];
+	TH1F* showermuonNumI[4][6];
     TH1F* time2Allmuon;
     TH1F* t2nextEvt[4];
 

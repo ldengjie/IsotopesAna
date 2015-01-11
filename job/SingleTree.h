@@ -71,7 +71,7 @@ class SingleTree : public TSelector {
         double triggerTime;
         Int_t           det;
         double t2lastshowermuon;
-        double T2lastMuon[52];
+        double T2lastMuon[64];
 
         TH1F* IsignalWin[3][7];
         TH1F* IoffWin[3][7];
