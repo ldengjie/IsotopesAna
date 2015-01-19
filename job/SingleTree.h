@@ -36,6 +36,10 @@ class SingleTree : public TSelector {
         double signalWinHigh;
         double offWinLow;
         double offWinHigh;
+        double signalWinLowI;
+        double signalWinHighI;
+        double offWinLowI;
+        double offWinHighI;
         string IsoMode;
         TFile* file;
         TString dataVer;

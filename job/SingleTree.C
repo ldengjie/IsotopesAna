@@ -33,14 +33,14 @@ void SingleTree::Begin(TTree * /*tree*/)
         HighEdge=20.0;
         LowEdge4e=LowEdge;
         HighEdge4e=HighEdge;
-        //signalWinLow=0.002;
-        //signalWinHigh=0.06;
-        //offWinLow=0.502;
-        //offWinHigh=0.560;
         signalWinLow=0.002;
         signalWinHigh=0.100;
-        offWinLow=-0.100;
-        offWinHigh=-0.002;
+        offWinLow=0.502;
+        offWinHigh=0.600;
+        signalWinLowI=0.002;
+        signalWinHighI=0.100;
+        offWinLowI=-0.098;
+        offWinHighI=-0.0;
     }else if( IsoMode=="Li8" )
     {
         //LowEdge=5.5;
@@ -300,7 +300,8 @@ Bool_t SingleTree::Process(Long64_t entry)
     //}
 
     //cut all events from Z>=900;cut flahser that exists in P12E P13A  from this zone;
-    if(!(z<900&&!(x>-1700&&x<-1200&&y>-1500&&y<-900&&z>-900&&x<-500)) )
+    //if(!(z<900&&!(x>-1700&&x<-1200&&y>-1500&&y<-900&&z>-900&&x<-500)) )
+    if(x>-1700&&x<-1200&&y>-1500&&y<-900&&z>-900&&x<-500)
     {
         return true;
     }
@@ -316,15 +317,15 @@ Bool_t SingleTree::Process(Long64_t entry)
                 minT2allmuonI[i]=1000.;
                 for( int j=0 ; j<5 ; j++ )
                 {
-                    singleSpecVsTime[i][j]->Fill(T2lastMuon[j+16+6*i],energy);
-                    minT2allmuonI[i]=minT2allmuonI[i]<T2lastMuon[j+16+6*i]?minT2allmuonI[i]:T2lastMuon[j+16+6*i];
-                    if( T2lastMuon[j+16+6*i]>=signalWinLow &&T2lastMuon[j+16+6*i]<=signalWinHigh )
+                    singleSpecVsTime[i][j]->Fill(T2lastMuon[j+4+6*i],energy);
+                    minT2allmuonI[i]=minT2allmuonI[i]<T2lastMuon[j+4+6*i]?minT2allmuonI[i]:T2lastMuon[j+4+6*i];
+                    if( T2lastMuon[j+4+6*i]>=signalWinLow &&T2lastMuon[j+4+6*i]<=signalWinHigh )
                     {
                         signalWinXY[i][j]->Fill(x,y);
                         signalWinRZ[i][j]->Fill(sqrt(x*x+y*y),z);
                         signalWin[i][j]->Fill(energy);
                     }
-                    if( T2lastMuon[j+16+6*i]>=offWinLow &&T2lastMuon[j+16+6*i]<=offWinHigh )
+                    if( T2lastMuon[j+4+6*i]>=offWinLow &&T2lastMuon[j+4+6*i]<=offWinHigh )
                     {
                         offWinXY[i][j]->Fill(x,y);
                         offWinRZ[i][j]->Fill(sqrt(x*x+y*y),z);
@@ -332,17 +333,17 @@ Bool_t SingleTree::Process(Long64_t entry)
                         isRealOff=1; 
                         for( int a=0 ; a<5 ; a++ )
                         {
-                            if( T2lastMuon[a+16+6*i]>=signalWinLow&&T2lastMuon[a+16+6*i]<=signalWinHigh )
+                            if( T2lastMuon[a+4+6*i]>=signalWinLow&&T2lastMuon[a+4+6*i]<=signalWinHigh )
                             {
                                 isRealOff=0;    
                                 break;
                             }
                         }
-                        if( isRealOff )
-                        {
+                        //if( isRealOff )
+                        //{
                             offWin[i][j]->Fill(energy);
                             offRealNum[i][j]++;
-                        } 
+                            //} 
                     }
                 }
                 singleSpecVsTime[i][5]->Fill(minT2allmuonI[i],energy);
@@ -365,11 +366,11 @@ Bool_t SingleTree::Process(Long64_t entry)
             {
                 for( int j=0 ; j<6 ; j++ )
                 {
-                    if( T2lastMuon[j+16+6*i]>=signalWinLow &&T2lastMuon[j+16+6*i]<=signalWinHigh )
+                    if( T2lastMuon[j+16+6*i]>=signalWinLowI &&T2lastMuon[j+16+6*i]<=signalWinHighI )
                     {
                         IsignalWin[i][j]->Fill(energy);
                     }
-                    if(T2lastMuon[j+40+6*3]>=offWinLow && T2lastMuon[j+40+6*3]<=offWinHigh)
+                    if(T2lastMuon[j+40+6*3]>=offWinLowI && T2lastMuon[j+40+6*3]<=offWinHighI)
                     {
                         IoffWin[i][j]->Fill(energy);
                     }
@@ -379,7 +380,7 @@ Bool_t SingleTree::Process(Long64_t entry)
                 {
                     mintime=mintime>T2lastMuon[j+16+i*6]?T2lastMuon[j+16+i*6]:mintime;
                 }
-                if( mintime>=signalWinLow &&mintime<=signalWinHigh )
+                if( mintime>=signalWinLowI &&mintime<=signalWinHighI )
                 {
                     IsignalWin[i][6]->Fill(energy);
                 }
@@ -388,7 +389,7 @@ Bool_t SingleTree::Process(Long64_t entry)
                 {
                     if(T2lastMuon[j+40+3*6]<0.)maxtime=maxtime<T2lastMuon[j+40+3*6]?T2lastMuon[j+40+3*6]:maxtime;
                 }
-                if(maxtime>=offWinLow && maxtime<=offWinHigh)
+                if(maxtime>=offWinLowI && maxtime<=offWinHighI)
                 {
                     IoffWin[i][6]->Fill(energy);
                 }
@@ -437,15 +438,9 @@ Bool_t SingleTree::Process(Long64_t entry)
         //TODO::fit time to last muon
         for( int j=0 ; j<3 ; j++ )
         {
-            for( int i=0 ; i<6 ; i++ )
-            {
-                Itime2lastshowermuon[j][i]->Fill(T2lastMuon[i+16+j*6]);
-            }
+            for( int i=0 ; i<6 ; i++ ) Itime2lastshowermuon[j][i]->Fill(T2lastMuon[i+16+j*6]);
             double mintime=1.e9;
-            for( int i=0 ; i<3 ; i++ )
-            {
-                mintime=mintime>T2lastMuon[i+16+j*6]?T2lastMuon[i+16+j*6]:mintime;
-            }
+            for( int i=0 ; i<3 ; i++ ) mintime=mintime>T2lastMuon[i+16+j*6]?T2lastMuon[i+16+j*6]:mintime;
             Itime2lastshowermuon[j][6]->Fill(mintime);
         }
     }
@@ -482,64 +477,66 @@ void SingleTree::Terminate()
                 }
                 file->cd();
                 int offWinNum=(int)((offWinHigh-offWinLow)/(signalWinHigh-signalWinLow));
+                if(offWinNum==0) offWinNum=1;
                 //std::cout<<"offWinNum  : "<<offWinNum<<endl;
 
-                //double offMuonRate=h->Integral(h->FindBin(offWinLow),h->FindBin(9999));
-                //double offMuonRateH=h->Integral(h->FindBin(offWinHigh),h->FindBin(9999));
+                double offMuonRate=h->Integral(h->FindBin(offWinLow),h->FindBin(9999));
+                double offMuonRateH=h->Integral(h->FindBin(offWinHigh),h->FindBin(9999));
 
-                int offWinLowBinNum=h->FindBin(offWinLow);
-                double offMuonRate=h->GetBinContent(offWinLowBinNum)*((h->GetBinLowEdge(offWinLowBinNum+1)-offWinLow)/h->GetBinWidth(offWinLowBinNum))*(h->GetBinLowEdge(offWinLowBinNum+1)-offWinLow)/2;
-                for( int l=offWinLowBinNum+1 ; l<h->FindBin(9999) ; l++ )
-                {
-                    offMuonRate=+h->GetBinContent(l)*(h->GetBinCenter(l)-offWinLow);
-                }
-                int offWinHighBinNumH=h->FindBin(offWinHigh);
-                double offMuonRateH=h->GetBinContent(offWinHighBinNumH)*((h->GetBinLowEdge(offWinHighBinNumH+1)-offWinHigh)/h->GetBinWidth(offWinHighBinNumH))*(h->GetBinLowEdge(offWinHighBinNumH+1)-offWinHigh)/2;
-                for( int l=offWinHighBinNumH+1 ; l<h->FindBin(9999) ; l++ )
-                {
-                    offMuonRateH=+h->GetBinContent(l)*(h->GetBinCenter(l)-offWinHigh);
-                }
+                //int offWinLowBinNum=h->FindBin(offWinLow);
+                //double offMuonRate=h->GetBinContent(offWinLowBinNum)*((h->GetBinLowEdge(offWinLowBinNum+1)-offWinLow)/h->GetBinWidth(offWinLowBinNum))*(h->GetBinLowEdge(offWinLowBinNum+1)-offWinLow)/2;
+                //for( int l=offWinLowBinNum+1 ; l<h->FindBin(9999) ; l++ )
+                //{
+                //offMuonRate+=h->GetBinContent(l)*(h->GetBinCenter(l)-offWinLow);
+                //}
+                //int offWinHighBinNumH=h->FindBin(offWinHigh);
+                //double offMuonRateH=h->GetBinContent(offWinHighBinNumH)*((h->GetBinLowEdge(offWinHighBinNumH+1)-offWinHigh)/h->GetBinWidth(offWinHighBinNumH))*(h->GetBinLowEdge(offWinHighBinNumH+1)-offWinHigh)/2;
+                //for( int l=offWinHighBinNumH+1 ; l<h->FindBin(9999) ; l++ )
+                //{
+                //offMuonRateH+=h->GetBinContent(l)*(h->GetBinCenter(l)-offWinHigh);
+                //}
 
                 //std::cout<<"offMuonRate  : "<<offMuonRate<<endl;
                 double offFrac=0.;
                 double offFracH=0.;
                 for( int k=0 ; k<offWinNum ; k++ )
                 {
-                    //double offMuonRateTmp=h->Integral(h->FindBin(offWinLow+(signalWinHigh-signalWinLow)*k),h->FindBin(9999));
-                    //double offMuonRateTmpH=h->Integral(h->FindBin(offWinHigh+(signalWinHigh-signalWinLow)*k),h->FindBin(9999));
+                    double offMuonRateTmp=h->Integral(h->FindBin(offWinLow+(signalWinHigh-signalWinLow)*k),h->FindBin(9999));
+                    double offMuonRateTmpH=h->Integral(h->FindBin(offWinHigh+(signalWinHigh-signalWinLow)*k),h->FindBin(9999));
 
-                    int offWinLowBinNumTmp=h->FindBin(offWinLow+(signalWinHigh-signalWinLow)*k);
-                    double offMuonRateTmp=h->GetBinContent(offWinLowBinNumTmp)*((h->GetBinLowEdge(offWinLowBinNumTmp+1)-offWinLow)/h->GetBinWidth(offWinLowBinNumTmp))*(h->GetBinLowEdge(offWinLowBinNumTmp+1)-offWinLow)/2;
-                    for( int l=offWinLowBinNumTmp+1 ; l<h->FindBin(9999) ; l++ )
-                    {
-                        offMuonRateTmp=+h->GetBinContent(l)*(h->GetBinCenter(l)-offWinLow);
-                    }
-                    int offWinHighBinNumHTmp=h->FindBin(offWinHigh+(signalWinHigh-signalWinLow)*k);
-                    double offMuonRateTmpH=h->GetBinContent(offWinHighBinNumHTmp)*((h->GetBinLowEdge(offWinHighBinNumHTmp+1)-offWinHigh)/h->GetBinWidth(offWinHighBinNumHTmp))*(h->GetBinLowEdge(offWinHighBinNumHTmp+1)-offWinHigh)/2;
-                    for( int l=offWinHighBinNumHTmp+1 ; l<h->FindBin(9999) ; l++ )
-                    {
-                        offMuonRateTmpH=+h->GetBinContent(l)*(h->GetBinCenter(l)-offWinHigh);
-                    }
+                    //int offWinLowBinNumTmp=h->FindBin(offWinLow+(signalWinHigh-signalWinLow)*k);
+                    //double offMuonRateTmp=h->GetBinContent(offWinLowBinNumTmp)*((h->GetBinLowEdge(offWinLowBinNumTmp+1)-offWinLow)/h->GetBinWidth(offWinLowBinNumTmp))*(h->GetBinLowEdge(offWinLowBinNumTmp+1)-offWinLow)/2;
+                    //for( int l=offWinLowBinNumTmp+1 ; l<h->FindBin(9999) ; l++ )
+                    //{
+                    //offMuonRateTmp+=h->GetBinContent(l)*(h->GetBinCenter(l)-offWinLow);
+                    //}
+                    //int offWinHighBinNumHTmp=h->FindBin(offWinHigh+(signalWinHigh-signalWinLow)*k);
+                    //double offMuonRateTmpH=h->GetBinContent(offWinHighBinNumHTmp)*((h->GetBinLowEdge(offWinHighBinNumHTmp+1)-offWinHigh)/h->GetBinWidth(offWinHighBinNumHTmp))*(h->GetBinLowEdge(offWinHighBinNumHTmp+1)-offWinHigh)/2;
+                    //for( int l=offWinHighBinNumHTmp+1 ; l<h->FindBin(9999) ; l++ )
+                    //{
+                    //offMuonRateTmpH+=h->GetBinContent(l)*(h->GetBinCenter(l)-offWinHigh);
+                    //}
                     //std::cout<<"offMuonRateTmp  : "<<offMuonRateTmp<<endl;
                     offFrac+=offMuonRateTmp/offMuonRate;
                     offFracH+=offMuonRateTmpH/offMuonRateH;
                 }
 
-                //double signalMuonRate=h->Integral(h->FindBin(signalWinLow),h->FindBin(9999));
-                //double signalMuonRateH=h->Integral(h->FindBin(signalWinHigh),h->FindBin(9999));
-
-                int signalWinLowBinNum=h->FindBin(signalWinLow);
-                double signalMuonRate=h->GetBinContent(signalWinLowBinNum)*((h->GetBinLowEdge(signalWinLowBinNum+1)-signalWinLow)/h->GetBinWidth(signalWinLowBinNum))*(h->GetBinLowEdge(signalWinLowBinNum+1)-signalWinLow)/2;
-                for( int l=signalWinLowBinNum+1 ; l<h->FindBin(9999) ; l++ )
-                {
-                    signalMuonRate=+h->GetBinContent(l)*(h->GetBinCenter(l)-signalWinLow);
-                }
-                int signalWinHighBinNumH=h->FindBin(signalWinHigh);
-                double signalMuonRateH=h->GetBinContent(signalWinHighBinNumH)*((h->GetBinLowEdge(signalWinHighBinNumH+1)-signalWinHigh)/h->GetBinWidth(signalWinHighBinNumH))*(h->GetBinLowEdge(signalWinHighBinNumH+1)-signalWinHigh)/2;
-                for( int l=signalWinHighBinNumH+1 ; l<h->FindBin(9999) ; l++ )
-                {
-                    signalMuonRateH=+h->GetBinContent(l)*(h->GetBinCenter(l)-signalWinHigh);
-                }
+                double signalMuonRate=h->Integral(h->FindBin(signalWinLow),h->FindBin(9999));
+                double signalMuonRateH=h->Integral(h->FindBin(signalWinHigh),h->FindBin(9999));
+                //cout<<"signalMuonRateIntegral  : "<< h->Integral(h->FindBin(signalWinLow),h->FindBin(9999))<<endl;
+                //
+                //int signalWinLowBinNum=h->FindBin(signalWinLow);
+                //double signalMuonRate=h->GetBinContent(signalWinLowBinNum)*((h->GetBinLowEdge(signalWinLowBinNum+1)-signalWinLow)/h->GetBinWidth(signalWinLowBinNum))*(h->GetBinLowEdge(signalWinLowBinNum+1)-signalWinLow)/2;
+                //for( int l=signalWinLowBinNum+1 ; l<h->FindBin(9999) ; l++ )
+                //{
+                //signalMuonRate+=h->GetBinContent(l)*(h->GetBinCenter(l)-signalWinLow);
+                //}
+                //int signalWinHighBinNumH=h->FindBin(signalWinHigh);
+                //double signalMuonRateH=h->GetBinContent(signalWinHighBinNumH)*((h->GetBinLowEdge(signalWinHighBinNumH+1)-signalWinHigh)/h->GetBinWidth(signalWinHighBinNumH))*(h->GetBinLowEdge(signalWinHighBinNumH+1)-signalWinHigh)/2;
+                //for( int l=signalWinHighBinNumH+1 ; l<h->FindBin(9999) ; l++ )
+                //{
+                //signalMuonRateH+=h->GetBinContent(l)*(h->GetBinCenter(l)-signalWinHigh);
+                //}
 
                 //std::cout<<" signalMuonRate : "<<signalMuonRate<<endl;
                 std::cout<<"signalFrac  : "<<signalMuonRate/offMuonRate<<endl;

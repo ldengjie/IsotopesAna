@@ -6,8 +6,8 @@ AlgMgr.Contents += {"LiveTimeAlg","MuonTagAlg"};
 SvcMgr.Contents += {"LiveTimeSvc"};
 LiveTimeSvc.TimeGap = 1.; // 1 second
 LiveTimeSvc.StartTime = "2011-09-20T00:00:00";
-LiveTimeSvc.EndTime = "2013-12-25T00:00:00";
-LiveTimeSvc.NBins = 4962;
+LiveTimeSvc.EndTime = "2018-07-05T00:00:00";
+LiveTimeSvc.NBins = 14880;
 LiveTimeSvc.BinWidth = 0.;  // If bin width > 0, nbins will be recaculated
 
 LafMain.Dlls += {"IsotopesAna"};

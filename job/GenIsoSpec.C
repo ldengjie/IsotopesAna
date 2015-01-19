@@ -23,18 +23,32 @@ int anaTree(int siteNum,string dataVer)
 	} 
 
 	string chainFile;
-	
-    chainFile="/afs/ihep.ac.cn/users/l/lidj/largedata/IsotopesAna/";
-    chainFile+=dataVer;
-    chainFile+="/";
-    chainFile+=site;
-    chainFile+="/*IsotopesAna.root";
+    
+    if( dataVer=="P4AB" )
+    {
+        chainFile="/afs/ihep.ac.cn/users/l/lidj/largedata/IsotopesAna/P14A/";
+        chainFile+=site;
+        chainFile+="/*IsotopesAna.root";
+        chain.Add(chainFile.c_str());
+        chainFile="/afs/ihep.ac.cn/users/l/lidj/largedata/IsotopesAna/P14B/";
+        chainFile+=site;
+        chainFile+="/*IsotopesAna.root";
+        chain.Add(chainFile.c_str());
+    }else
+    {
+        chainFile="/afs/ihep.ac.cn/users/l/lidj/largedata/IsotopesAna/";
+        chainFile+=dataVer;
+        chainFile+="/";
+        chainFile+=site;
+        chainFile+="/*IsotopesAna.root";
+        std::cout<<"chainFile  : "<<chainFile<<endl;
+        chain.Add(chainFile.c_str());
+    }
+
 
     //chainFile="P14A/P14AEH1_tree.root";
     
     //chainFile="/afs/ihep.ac.cn/users/l/lidj/largedata/IsotopesAna/P14A/EH1/run21344*IsotopesAna.root";
-    std::cout<<"chainFile  : "<<chainFile<<endl;
-    chain.Add(chainFile.c_str());
     std::cout<<dataVer<<" : "<<chain.GetEntries()<<endl;
     if( dataVer=="P12E" )
     {

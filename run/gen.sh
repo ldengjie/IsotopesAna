@@ -46,6 +46,12 @@ outPUTFILEPATH="/afs/ihep.ac.cn/users/l/lidj/largedata/IsotopesAna/P14A"
 logPath="/afs/ihep.ac.cn/users/l/lidj/largedata/IsotopesAna/P14A/log"
 targetdir=$PWD/jobs/P14A
 
+#inputFILELISTPATH="/junofs/dyb/P14B/minirec_GoodRun_v1/"
+##RpcGoodFileList="/workfs/dyw/lidj/runlist/P12B/RpcGood"
+#outPUTFILEPATH="/afs/ihep.ac.cn/users/l/lidj/largedata/IsotopesAna/P14B"
+#logPath="/afs/ihep.ac.cn/users/l/lidj/largedata/IsotopesAna/P14B/log"
+#targetdir=$PWD/jobs/P14B
+
 outputFile2Name="runRUNNUM_IsotopesAna.root"
 useFILE1="TOutputSvc.Output" #if not use FILE1 ,just comment out this line
 outputFile1Name="runRUNNUM_hists.root"
